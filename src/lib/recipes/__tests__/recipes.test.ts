@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { formatAmount } from "../format";
+import { mergeMealTags, splitMealTags } from "../meals";
 import { parseQuantity, quantityToInput } from "../quantity";
 import { portionsFor, scaleQuantity } from "../scaling";
 import { searchRecipes } from "../search";
@@ -143,5 +144,18 @@ describe("parseQuantity", () => {
   it("formats stored numbers for inputs", () => {
     expect(quantityToInput(0.1 + 0.2)).toBe("0.3");
     expect(quantityToInput(null)).toBe("");
+  });
+});
+
+describe("meal tags", () => {
+  it("splits meals from other tags", () => {
+    expect(splitMealTags(["pasta", "dinner", "lunch"])).toEqual({ meals: ["lunch", "dinner"], others: ["pasta"] });
+    expect(splitMealTags([])).toEqual({ meals: [], others: [] });
+  });
+
+  it("merges meals first, in order, without duplicates", () => {
+    expect(mergeMealTags(["dinner", "breakfast"], ["Pasta", "pasta", "lunch", " "])).toEqual(["breakfast", "dinner", "pasta"]);
+    expect(mergeMealTags([], ["dolci"])).toEqual(["dolci"]);
+    expect(mergeMealTags(["breakfast", "lunch", "dinner"], [])).toEqual(["breakfast", "lunch", "dinner"]);
   });
 });

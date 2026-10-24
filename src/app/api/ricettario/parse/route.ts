@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { FetchPageError, fetchRecipePage } from "@/lib/ai/fetch-page";
 import { ParseError, parseRecipe, type ParseInput, type ParsedRecipe } from "@/lib/ai/parse-recipe";
+import { mergeMealTags } from "@/lib/recipes/meals";
 import { MAX_PHOTOS, PHOTO_BUCKET } from "@/lib/recipes/photos";
 import type { RecipeDraft } from "@/lib/recipes/types";
 import { currentMember } from "@/lib/supabase/server";
@@ -22,7 +23,7 @@ function toDraft(parsed: ParsedRecipe, request: ParseRequest, sourceUrl: string 
   return {
     title: parsed.title.trim(),
     notes: parsed.notes?.trim() || null,
-    tags: [...new Set(parsed.tags.map((t) => t.trim().toLowerCase()).filter(Boolean))],
+    tags: mergeMealTags([...parsed.meals, ...parsed.tags], parsed.tags),
     kind: parsed.kind,
     yield: parsed.kind === "batch" ? parsed.yield?.trim() || null : null,
     ingredients: parsed.ingredients

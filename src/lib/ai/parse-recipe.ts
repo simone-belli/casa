@@ -3,6 +3,7 @@ import "server-only";
 import Anthropic from "@anthropic-ai/sdk";
 import { betaZodOutputFormat } from "@anthropic-ai/sdk/helpers/beta/zod";
 import { z } from "zod";
+import { MEALS } from "@/lib/recipes/meals";
 import { SCALING_MODES, RECIPE_KINDS } from "@/lib/recipes/types";
 
 const MODEL = "claude-sonnet-5-5";
@@ -12,6 +13,8 @@ const parsedRecipeSchema = z.object({
   title: z.string(),
   notes: z.string().nullable(),
   tags: z.array(z.string()),
+  /** Meals the dish suits; stored as tags. */
+  meals: z.array(z.enum(MEALS)),
   kind: z.enum(RECIPE_KINDS),
   yield: z.string().nullable(),
   ingredients: z.array(
@@ -48,7 +51,7 @@ Scaling, for every ingredient:
 - "rounded": scales but must be a whole number when cooking (eggs, whole vegetables, cans).
 - "fixed": does not change with the number of people (a pinch of salt, a bay leaf, a baking tin, oil for greasing).
 
-Notes: short, useful context only (where the recipe came from, tips written on the page). Tags: a few lowercase tags such as the course, main ingredient or occasion. Steps: one action per step, in order, without numbering.
+Notes: short, useful context only (where the recipe came from, tips written on the page). Meals: tick the meals the dish suits ("breakfast", "lunch", "dinner"); any number, including none or all three. Tags: a few lowercase tags such as the course, main ingredient or occasion; don't repeat the meals as tags. Steps: one action per step, in order, without numbering.
 
 If the input does not contain a recipe, return an empty title, no ingredients or steps, and a warning explaining what was found instead.`;
 

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Stepper } from "@/components/stepper";
 import { ui } from "@/components/ui";
+import { MEALS, type Meal, mergeMealTags, splitMealTags } from "@/lib/recipes/meals";
 import { parseQuantity, quantityToInput } from "@/lib/recipes/quantity";
 import {
   type Ingredient,
@@ -63,7 +64,8 @@ export function RecipeForm({ initial, initialPortions, warnings = [], banner, su
   const [kind, setKind] = useState(initial.kind);
   const [yieldText, setYieldText] = useState(initial.yield ?? "");
   const [portions, setPortions] = useState(initialPortions);
-  const [tags, setTags] = useState(initial.tags.join(", "));
+  const [meals, setMeals] = useState<Meal[]>(() => splitMealTags(initial.tags).meals);
+  const [tags, setTags] = useState(() => splitMealTags(initial.tags).others.join(", "));
   const [notes, setNotes] = useState(initial.notes ?? "");
   const [ingredients, setIngredients] = useState<IngredientRow[]>(() =>
     toRows(initial.ingredients, (i) => (initial.kind === "portion" && i.scaling !== "fixed" ? initialPortions : 1)),
@@ -97,7 +99,7 @@ export function RecipeForm({ initial, initialPortions, warnings = [], banner, su
       title: title.trim(),
       kind,
       yield: kind === "batch" ? yieldText.trim() || null : null,
-      tags: [...new Set(tags.split(",").map((t) => t.trim().toLowerCase()).filter(Boolean))],
+      tags: mergeMealTags(meals, tags.split(",")),
       notes: notes.trim() || null,
       ingredients: parsedIngredients,
       steps: steps.map((s) => s.text.trim()).filter(Boolean),
@@ -180,6 +182,29 @@ export function RecipeForm({ initial, initialPortions, warnings = [], banner, su
             <input id="yield" placeholder="1 cake, 24 cm tin" value={yieldText} onChange={(e) => setYieldText(e.target.value)} className={ui.input} />
           </div>
         )}
+
+        <fieldset>
+          <legend className={ui.label}>Good for</legend>
+          <div className="grid grid-cols-3 gap-2">
+            {MEALS.map((meal) => {
+              const ticked = meals.includes(meal);
+              return (
+                <label
+                  key={meal}
+                  className={`flex min-h-11 items-center justify-center gap-2 rounded-xl border px-2 text-sm font-semibold capitalize ${ticked ? "border-brand bg-brand text-brand-ink" : "border-line bg-surface text-ink"}`}
+                >
+                  <input
+                    type="checkbox"
+                    checked={ticked}
+                    onChange={() => setMeals((m) => (ticked ? m.filter((x) => x !== meal) : [...m, meal]))}
+                    className="h-4 w-4 accent-white"
+                  />
+                  {meal}
+                </label>
+              );
+            })}
+          </div>
+        </fieldset>
       </section>
 
       <section className={`${ui.card} flex flex-col gap-3`}>
