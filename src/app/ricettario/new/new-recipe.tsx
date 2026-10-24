@@ -29,6 +29,17 @@ export function NewRecipe() {
   const [text, setText] = useState("");
   const [photos, setPhotos] = useState<{ file: File; preview: string }[]>([]);
   const [uploaded, setUploaded] = useState<string[]>([]);
+  // Every photo uploaded during this visit, and those that ended up in a saved
+  // recipe; the rest are deleted when leaving the page, however we leave it.
+  const allUploaded = useRef<string[]>([]);
+  const kept = useRef<string[]>([]);
+  useEffect(
+    () => () => {
+      const orphans = allUploaded.current.filter((path) => !kept.current.includes(path));
+      if (orphans.length > 0) void discardPhotos(orphans);
+    },
+    [],
+  );
   const [reading, setReading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [review, setReview] = useState<Review | null>(null);
@@ -64,6 +75,7 @@ export function NewRecipe() {
       let body: object;
       if (method === "photo") {
         const paths = uploaded.length > 0 ? uploaded : await uploadPhotos(photos.map((p) => p.file));
+        if (paths !== uploaded) allUploaded.current.push(...paths);
         setUploaded(paths);
         body = { type: "photos", paths };
       } else if (method === "paste" && isLink(text)) {
@@ -90,7 +102,6 @@ export function NewRecipe() {
   }
 
   function cancel() {
-    void discardPhotos(uploaded);
     router.push("/ricettario");
   }
 
@@ -104,6 +115,7 @@ export function NewRecipe() {
         onCancel={cancel}
         onSave={async (draft) => {
           const recipe = await createRecipe(draft);
+          kept.current = draft.photo_paths;
           router.replace(`/ricettario/${recipe.id}`);
         }}
       />

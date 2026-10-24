@@ -116,7 +116,7 @@ logos/                 source logos; public/brand and public/icons are generated
 - Served over plain `http` on the home network, so there's no service worker
   (browsers only allow it over https). The home-screen app works, but needs
   the computer to be on. Deploying to Vercel later fixes both.
-- Photos uploaded for a recipe that's then abandoned mid-review are removed
-  when you tap *Cancel*, but not if you just close the app.
+- Photos uploaded for a recipe that's then abandoned are removed when you
+  leave the page, but not if you close the app while still on it.
 - If both of you edit the same recipe at once, the last save wins. The second
   person sees a warning first.

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { FreshOnEachVisit } from "@/components/fresh-on-each-visit";
 import { ui } from "@/components/ui";
 import { RicettarioHeader } from "../header";
 import { NewRecipe } from "./new-recipe";
@@ -10,7 +11,9 @@ export default function NewRecipePage() {
     <>
       <RicettarioHeader title="Add a recipe" back={{ href: "/ricettario", label: "Back to recipes" }} />
       <main className={ui.page}>
-        <NewRecipe />
+        <FreshOnEachVisit>
+          <NewRecipe />
+        </FreshOnEachVisit>
       </main>
     </>
   );
