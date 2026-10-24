@@ -8,64 +8,13 @@
 - Designed to host several sections; more may be added later.
 - Initial sections: **Ricettario** (build now) and **Agenda** (empty placeholder for now).
 - Each section has its own name, logo and visual theme. Casa, Ricettario and Agenda do not share a theme.
+- Home screen: the Casa logo and two large buttons, **Ricettario** and **Agenda** (marked "coming soon"), with a small link to Settings.
+- Settings (Casa level, shared): default family size, the household members, sign out.
+- v0 is not deployed: it runs on a computer at home and the phones open it over Wi-Fi. Moving to Vercel later needs no code changes.
 
 ## Section 1 — Ricettario (build now)
 
-## Purpose
-
-A shared recipe library for Simone and Kat. Today recipes are scattered across memory, paper notebooks and phones; this app unifies them in one place to reference while cooking and to adjust over time.
-
-## Users and platform
-
-- Two users (Simone and Kat), each with their own login.
-- One shared collection: both can view, add and edit everything; changes are visible to the other immediately.
-- Used essentially 100% on phones. Build as a mobile-first web app (PWA) that can be added to the home screen; no app store.
-
-## Adding recipes
-
-Three input routes, all normalised by an AI step into one structured format:
-
-1. **Dictation / typing** — for recipes that live in their heads.
-2. **Photo** — phone camera snaps of notebook pages, transcribed and parsed.
-3. **Paste** — text or links copied from the phone.
-
-After parsing, the user reviews and confirms the structured recipe before saving.
-
-## Recipe data model
-
-- Title, optional notes/tags
-- Ingredients: name, quantity, unit, **scaling mode** (linear / rounded to whole units / fixed)
-- Steps (ordered)
-- Quantities stored **per adult portion** so scaling is straightforward
-
-## Portion scaling
-
-- Every recipe page has controls for **number of adults** and **number of children**.
-- A child counts as **half an adult**: portions = adults + 0.5 × children.
-- Default is the family composition (2 adults + 2 children = 3 portions), configurable in settings.
-- Scaling is a **temporary view adjustment**: it changes displayed quantities but is not saved to the recipe.
-- Ingredient scaling modes:
-  - *Linear* — multiply by portions (most ingredients)
-  - *Rounded* — multiply then round to whole units (e.g. eggs)
-  - *Fixed* — never scales (e.g. a pinch of salt, a baking tin)
-
-## Editing
-
-- Users can change quantities, add or remove ingredients, and edit steps.
-- Edits **overwrite** the original; no version history.
-
-## Out of scope for v1
-
-- Separate personal collections
-- Recipe version history
-- Native iOS/Android apps
-
-## Open questions
-
-- Hosting and database choice
-- Authentication approach for two users
-- Which AI model/API to use for parsing photos and text
-- Search and organisation (tags, categories)
+Specified in [RICETTARIO-SPEC.md](RICETTARIO-SPEC.md).
 
 ## Section 2 — Agenda (later; placeholder only for now)
 
@@ -81,12 +30,4 @@ Agenda is not part of the current build. Show it in Casa's navigation as an empt
 
 ## Logos
 
-## Ricettario logo
-
-&#91;embedded content: logo concepts · rustic trattoria\]
-
-Chosen logo: the negative version, a white italic R on tablecloth red (#C8102E) with a red-and-white checkered band.
-
-## Casa and Agenda logos (chosen)
-
-&#91;embedded content: Casa and Agenda logo options\]
+The chosen logos are in [`/logos`](../logos): `casa.svg` (also the home-screen icon), `ricettario.svg` and `agenda.svg`. Each section's theme colours come from its logo.

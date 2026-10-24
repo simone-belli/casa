@@ -22,7 +22,7 @@ A shared recipe library for Simone and Kat. Today recipes are scattered across m
 | Database | Supabase Postgres, with Row Level Security |
 | Live updates | Supabase Realtime on the `recipes` table |
 | Photo storage | Supabase Storage, private bucket `recipe-photos` |
-| Authentication | Supabase email magic link; sign-ups disabled, only Simone's and Kat's addresses are allowed (`allowed_emails` table enforced by RLS) |
+| Authentication | Supabase email sign-in; the email carries a magic link and a one-time code (the code is what works inside an iPhone home-screen app). Sign-ups disabled, only Simone's and Kat's addresses are allowed (`allowed_emails` table enforced by RLS) |
 | AI parsing | Claude Sonnet 5.5 (`claude-sonnet-5-5`) via the Anthropic TypeScript SDK, structured outputs, called only from a server route |
 
 The Anthropic API key and the Supabase service credentials live only in server environment variables.

@@ -1,0 +1,93 @@
+@import "tailwindcss";
+
+/*
+ * Each section has its own theme, set with data-theme on the section's root
+ * element. Colours come from the section logos in /logos.
+ */
+
+/* Casa: terracotta, olive and cream (the front door). */
+:root,
+[data-theme="casa"] {
+  --bg: #f4e9d8;
+  --surface: #fffaf1;
+  --ink: #3b2a1f;
+  --muted: #7a6553;
+  --line: #e3d3ba;
+  --brand: #c65d3b;
+  --brand-ink: #ffffff;
+  --accent: #5e6b32;
+  --danger: #a3261b;
+  --display-font: ui-serif, Georgia, "Times New Roman", serif;
+  --title-style: normal;
+  --body-font: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+/* Ricettario: tablecloth red and white, a rustic trattoria. */
+[data-theme="ricettario"] {
+  --bg: #fffaf7;
+  --surface: #ffffff;
+  --ink: #2b1916;
+  --muted: #7d6460;
+  --line: #f0dad7;
+  --brand: #c8102e;
+  --brand-ink: #ffffff;
+  --accent: #c8102e;
+  --danger: #8f0b20;
+  --display-font: "Gelasio", Georgia, serif;
+  --title-style: italic;
+  --body-font: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+/* Agenda: navy and amber. */
+[data-theme="agenda"] {
+  --bg: #f2f5f9;
+  --surface: #ffffff;
+  --ink: #1f3a5f;
+  --muted: #5b6f8a;
+  --line: #c9d3e0;
+  --brand: #1f3a5f;
+  --brand-ink: #ffffff;
+  --accent: #e1a730;
+  --danger: #a3261b;
+  --display-font: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --title-style: normal;
+  --body-font: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
+  --color-line: var(--line);
+  --color-brand: var(--brand);
+  --color-brand-ink: var(--brand-ink);
+  --color-accent: var(--accent);
+  --color-danger: var(--danger);
+  --font-display: var(--display-font);
+  --font-body: var(--body-font);
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--body-font);
+}
+
+/* The Ricettario checkered band, reused from the logo under the header. */
+.checkered-band {
+  height: 16px;
+  background: repeating-conic-gradient(#c8102e 0 25%, #ffffff 0 50%) 0 0 / 16px 16px;
+}
+
+/* Comfortable tap targets and no iOS zoom-on-focus (inputs need >= 16px text). */
+input,
+select,
+textarea {
+  font-size: 16px;
+}
