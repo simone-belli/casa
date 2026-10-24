@@ -1,7 +1,8 @@
 "use client";
 
 import Image from "next/image";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
+import { useSafeRouter } from "@/lib/navigation";
 import { useState } from "react";
 import { ui } from "@/components/ui";
 import { supabaseBrowser } from "@/lib/supabase/client";
@@ -12,7 +13,7 @@ import { supabaseBrowser } from "@/lib/supabase/client";
  * Safari, so a link opened from Mail would sign in Safari, not the app.
  */
 export function LoginForm() {
-  const router = useRouter();
+  const router = useSafeRouter();
   const linkFailed = useSearchParams().get("error") === "link";
   const [email, setEmail] = useState("");
   const [code, setCode] = useState("");

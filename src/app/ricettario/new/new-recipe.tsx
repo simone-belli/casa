@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { useSafeRouter } from "@/lib/navigation";
 import { useEffect, useRef, useState } from "react";
 import type { ParseResponse } from "@/app/api/ricettario/parse/route";
 import { ui } from "@/components/ui";
@@ -23,7 +23,7 @@ const METHODS: { id: Method; icon: string; title: string; hint: string }[] = [
 const isLink = (text: string) => /^https?:\/\/\S+$/i.test(text.trim());
 
 export function NewRecipe() {
-  const router = useRouter();
+  const router = useSafeRouter();
   const family = useFamilyDefaults();
   const [method, setMethod] = useState<Method | null>(null);
   const [text, setText] = useState("");

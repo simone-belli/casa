@@ -1,5 +1,5 @@
 import Image from "next/image";
-import Link from "next/link";
+import { SafeLink } from "@/components/safe-link";
 import { ui } from "@/components/ui";
 
 const SECTIONS = [
@@ -17,7 +17,7 @@ export default function CasaHome() {
 
       <nav className="grid gap-4">
         {SECTIONS.map((section) => (
-          <Link
+          <SafeLink
             key={section.href}
             href={section.href}
             className={`flex items-center gap-4 rounded-3xl border border-line bg-surface p-4 shadow-sm active:scale-[0.99] ${section.soon ? "opacity-70" : ""}`}
@@ -27,14 +27,14 @@ export default function CasaHome() {
               <span className="font-display text-2xl text-ink">{section.name}</span>
               <span className="text-muted">{section.blurb}</span>
             </span>
-          </Link>
+          </SafeLink>
         ))}
       </nav>
 
       <footer className="mt-auto pt-10 text-center">
-        <Link href="/settings" className="text-muted underline-offset-4 active:underline">
+        <SafeLink href="/settings" className="text-muted underline-offset-4 active:underline">
           Settings
-        </Link>
+        </SafeLink>
       </footer>
     </main>
   );

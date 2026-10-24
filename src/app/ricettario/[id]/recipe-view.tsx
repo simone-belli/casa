@@ -1,7 +1,7 @@
 "use client";
 
-import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useSafeRouter } from "@/lib/navigation";
+import { SafeLink } from "@/components/safe-link";
 import { useState } from "react";
 import { Stepper } from "@/components/stepper";
 import { ui } from "@/components/ui";
@@ -36,7 +36,7 @@ export function RecipeView() {
 }
 
 function RecipeDetails({ recipe }: { recipe: Recipe }) {
-  const router = useRouter();
+  const router = useSafeRouter();
   const { nameOf } = useHousehold();
   const family = useFamilyDefaults();
   // Scaling is a temporary view adjustment: kept in local state, never saved.
@@ -67,9 +67,9 @@ function RecipeDetails({ recipe }: { recipe: Recipe }) {
         title="Recipe"
         back={back}
         action={
-          <Link href={`/ricettario/${recipe.id}/edit`} className="rounded-full bg-white px-4 py-2 font-semibold text-brand active:opacity-80">
+          <SafeLink href={`/ricettario/${recipe.id}/edit`} className="rounded-full bg-white px-4 py-2 font-semibold text-brand active:opacity-80">
             Edit
-          </Link>
+          </SafeLink>
         }
       />
       <article className="flex flex-col gap-5 px-4 pt-5">

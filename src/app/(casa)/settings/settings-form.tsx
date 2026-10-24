@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { useSafeRouter } from "@/lib/navigation";
 import { useEffect, useState } from "react";
 import { Stepper } from "@/components/stepper";
 import { ui } from "@/components/ui";
@@ -9,7 +9,7 @@ import { portionsFor } from "@/lib/recipes/scaling";
 import { supabaseBrowser } from "@/lib/supabase/client";
 
 export function SettingsForm() {
-  const router = useRouter();
+  const router = useSafeRouter();
   const { members, me } = useHousehold();
   const [settings, setSettings] = useState<HouseholdSettings | null>(null);
   const [status, setStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");

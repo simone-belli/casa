@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { useSafeRouter } from "@/lib/navigation";
 import { useState } from "react";
 import { useFamilyDefaults, useHousehold } from "@/lib/household";
 import { createRecipe, updateRecipe } from "@/lib/recipes/db";
@@ -11,7 +11,7 @@ import { RecipeForm } from "../../recipe-form";
 import { useRecipe } from "../use-recipe";
 
 export function EditRecipe() {
-  const router = useRouter();
+  const router = useSafeRouter();
   const family = useFamilyDefaults();
   const { me, nameOf } = useHousehold();
   const [remote, setRemote] = useState<{ type: "UPDATE" | "DELETE"; by: string | null } | null>(null);

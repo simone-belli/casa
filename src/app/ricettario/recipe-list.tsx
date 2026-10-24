@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import { SafeLink } from "@/components/safe-link";
 import { useEffect, useMemo, useState } from "react";
 import { ui } from "@/components/ui";
 import { useHousehold } from "@/lib/household";
@@ -56,9 +56,9 @@ export function RecipeList() {
         <div className="flex flex-col items-center gap-4 py-12 text-center">
           <p className="font-display text-2xl">No recipes yet</p>
           <p className="max-w-xs text-muted">Add the first one by typing it, snapping a notebook page or pasting a link.</p>
-          <Link href="/ricettario/new" className={ui.primary}>
+          <SafeLink href="/ricettario/new" className={ui.primary}>
             + Add a recipe
-          </Link>
+          </SafeLink>
         </div>
       )}
 
@@ -71,7 +71,7 @@ export function RecipeList() {
           const by = nameOf(recipe.updated_by);
           return (
             <li key={recipe.id}>
-              <Link href={`/ricettario/${recipe.id}`} className={`${ui.card} block active:bg-bg`}>
+              <SafeLink href={`/ricettario/${recipe.id}`} prefetch={false} className={`${ui.card} block active:bg-bg`}>
                 <p className="font-display text-xl leading-snug">{recipe.title}</p>
                 <p className="mt-1 text-sm text-muted">
                   {recipe.kind === "batch" ? recipe.yield || "Batch" : `${recipe.ingredients.length} ingredients`}
@@ -88,7 +88,7 @@ export function RecipeList() {
                     ))}
                   </p>
                 )}
-              </Link>
+              </SafeLink>
             </li>
           );
         })}
