@@ -1,6 +1,6 @@
 # Casa — Spec v0.2
 
-**Note for Claude Code:** the project is now called **Casa**. It's a household hub for Simone and Kat that holds several sections, starting with **Ricettario** (recipes) and **Agenda** (calendar and tasks). Please restructure the existing work so Ricettario becomes the first section inside Casa. Build Ricettario only for now. Agenda should exist as an empty placeholder section, and we'll spec and build it later.
+**Note for Claude Code:** this is a new project, starting from scratch. The repository is empty apart from this spec. **Casa** is a household hub for Simone and Kat that holds several sections, starting with **Ricettario** (recipes) and **Agenda** (calendar and tasks). Build the Casa shell and the Ricettario section first. Agenda should exist only as an empty placeholder section, and we'll spec and build it later.
 
 ## Casa — the hub
 
