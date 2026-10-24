@@ -113,6 +113,15 @@ export function NewRecipe() {
   if (!method) {
     return (
       <div className="flex flex-col gap-3 pt-5">
+        <button type="button" onClick={() => setReview({ draft: emptyDraft(), warnings: [] })} className={`${ui.card} flex items-center gap-4 text-left active:bg-bg`}>
+          <span className="text-3xl" aria-hidden>
+            ✍️
+          </span>
+          <span>
+            <span className="block font-display text-xl">Fill in the form yourself</span>
+            <span className="text-sm text-muted">Enter it straight into the form</span>
+          </span>
+        </button>
         {METHODS.map((m) => (
           <button key={m.id} type="button" onClick={() => setMethod(m.id)} className={`${ui.card} flex items-center gap-4 text-left active:bg-bg`}>
             <span className="text-3xl" aria-hidden>
@@ -124,9 +133,6 @@ export function NewRecipe() {
             </span>
           </button>
         ))}
-        <button type="button" onClick={() => setReview({ draft: emptyDraft(), warnings: [] })} className="mt-2 text-center text-muted underline">
-          Or fill in the form yourself
-        </button>
       </div>
     );
   }
