@@ -8,6 +8,7 @@ import type { Groceries } from "@/lib/groceries/types";
 import { useDeviceSetting, useGroceries } from "@/lib/groceries/use-groceries";
 import { ErrorBanner, LoadState } from "../parts";
 import { ListEditor } from "./list-editor";
+import { SuggestAisles } from "./suggest-aisles";
 
 const byPosition = <T extends { position: number }>(a: T, b: T) => a.position - b.position;
 
@@ -90,6 +91,7 @@ export function GroceriesSettings() {
               );
             }}
           />
+          <SuggestAisles store={store} data={data} />
           {stores.length > 1 && (
             <div className="flex justify-end gap-1 text-sm">
               <span className="self-center text-muted">Move supermarket</span>

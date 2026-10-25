@@ -1,7 +1,9 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
+import { describeClaudeError } from "@/lib/ai/errors";
 import { SortError, sortGroceries } from "@/lib/ai/sort-groceries";
 import { pastedChunks } from "@/lib/groceries/views";
+import { mapLimited } from "@/lib/map-limited";
 import { currentMember } from "@/lib/supabase/server";
 
 const requestSchema = z.object({
@@ -9,8 +11,9 @@ const requestSchema = z.object({
   text: z.string().trim().min(1).max(50_000),
 });
 
-/** Most lines sorted in one go; longer lists are sorted in parts, in parallel. */
+/** Most lines sorted in one go; longer lists are sorted in parts, a few at a time. */
 const LINES_PER_PART = 80;
+const PARTS_AT_ONCE = 2;
 const MAX_LINES = 1000;
 
 export type SortResponse = { items: { name: string; places: string[] }[] } | { error: string };
@@ -30,7 +33,7 @@ export async function POST(request: Request): Promise<NextResponse<SortResponse>
   }
 
   try {
-    const sorted = await Promise.all(parts.map((lines) => sortGroceries(lines)));
+    const sorted = await mapLimited(parts, PARTS_AT_ONCE, (lines) => sortGroceries(lines));
     const seen = new Set<string>();
     const items = sorted
       .flatMap((s) => s.items)
@@ -45,6 +48,6 @@ export async function POST(request: Request): Promise<NextResponse<SortResponse>
   } catch (error) {
     if (error instanceof SortError) return NextResponse.json({ error: error.message }, { status: 422 });
     console.error("Sorting groceries failed", error);
-    return NextResponse.json({ error: "Something went wrong while sorting the list. Please try again." }, { status: 502 });
+    return NextResponse.json({ error: describeClaudeError(error) }, { status: 502 });
   }
 }
