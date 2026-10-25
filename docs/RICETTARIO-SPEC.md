@@ -37,7 +37,7 @@ Three input routes, all normalised by an AI step into one structured format:
 
 The AI converts imperial units (cups, ounces, °F…) to metric, and converts quantities to the recipe's base (per adult portion, or per batch).
 
-After parsing, the user reviews and edits the structured recipe in a form before saving. Nothing is saved until they confirm.
+After parsing, the user reviews and edits the structured recipe in a form before saving. Nothing is saved until they confirm. The AI never fills in the notes; they start empty for the user to write.
 
 ## Recipe data model
 

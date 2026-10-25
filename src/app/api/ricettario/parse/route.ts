@@ -22,7 +22,8 @@ type ImageType = (typeof IMAGE_TYPES)[number];
 function toDraft(parsed: ParsedRecipe, request: ParseRequest, sourceUrl: string | null): RecipeDraft {
   return {
     title: parsed.title.trim(),
-    notes: parsed.notes?.trim() || null,
+    // Notes are left for the person to write.
+    notes: null,
     tags: mergeMealTags([...parsed.meals, ...parsed.tags], parsed.tags),
     kind: parsed.kind,
     yield: parsed.kind === "batch" ? parsed.yield?.trim() || null : null,

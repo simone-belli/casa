@@ -11,7 +11,6 @@ const MODEL = "claude-sonnet-5-5";
 /** What the model returns; validated again by the review form before saving. */
 const parsedRecipeSchema = z.object({
   title: z.string(),
-  notes: z.string().nullable(),
   tags: z.array(z.string()),
   /** Meals the dish suits; stored as tags. */
   meals: z.array(z.enum(MEALS)),
@@ -34,7 +33,7 @@ export type ParsedRecipe = z.infer<typeof parsedRecipeSchema>;
 
 const SYSTEM_PROMPT = `You turn recipes into a structured format for Ricettario, a family recipe app used by Simone and Kat while cooking. The input may be dictated or typed text, photos of handwritten or printed notebook pages, or content taken from a web page.
 
-Language: keep the recipe in the language it was written in (often Italian or English). Do not translate the title, ingredient names, notes or steps. Write warnings in English.
+Language: keep the recipe in the language it was written in (often Italian or English). Do not translate the title, ingredient names or steps. Write warnings in English.
 
 Transcription: when reading photos, transcribe faithfully. If a word or quantity is illegible, give your best reading and add a warning saying which part to check. Recipes may continue across several photos; combine them into one recipe.
 
@@ -51,7 +50,7 @@ Scaling, for every ingredient:
 - "rounded": scales but must be a whole number when cooking (eggs, whole vegetables, cans).
 - "fixed": does not change with the number of people (a pinch of salt, a bay leaf, a baking tin, oil for greasing).
 
-Notes: short, useful context only (where the recipe came from, tips written on the page). Meals: tick the meals the dish suits ("breakfast", "lunch", "dinner"); any number, including none or all three. Tags: a few lowercase tags such as the course, main ingredient or occasion; don't repeat the meals as tags. Steps: one action per step, in order, without numbering.
+Tips written on the page go into the step they belong to. Meals: tick the meals the dish suits ("breakfast", "lunch", "dinner"); any number, including none or all three. Tags: a few lowercase tags such as the course, main ingredient or occasion; don't repeat the meals as tags. Steps: one action per step, in order, without numbering.
 
 If the input does not contain a recipe, return an empty title, no ingredients or steps, and a warning explaining what was found instead.`;
 
