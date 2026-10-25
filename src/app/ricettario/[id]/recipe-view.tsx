@@ -48,6 +48,9 @@ function RecipeDetails({ recipe }: { recipe: Recipe }) {
   const children = people?.children ?? family?.default_children ?? 2;
   const factor = recipe.kind === "portion" ? portionsFor(adults, children) : multiplier;
   const updatedBy = nameOf(recipe.updated_by);
+  // Sections with nothing to show are left out.
+  const scales = recipe.ingredients.some((i) => i.quantity !== null && i.scaling !== "fixed");
+  const hasSource = recipe.photo_paths.length > 0 || Boolean(recipe.source_url?.trim()) || Boolean(recipe.source_text?.trim());
 
   async function remove() {
     if (!window.confirm(`Delete “${recipe.title}”? This can't be undone.`)) return;
@@ -87,72 +90,78 @@ function RecipeDetails({ recipe }: { recipe: Recipe }) {
           )}
         </header>
 
-        {recipe.notes && <p className="whitespace-pre-wrap rounded-2xl bg-brand/5 p-4 text-ink italic">{recipe.notes}</p>}
+        {recipe.notes?.trim() && <p className="whitespace-pre-wrap rounded-2xl bg-brand/5 p-4 text-ink italic">{recipe.notes}</p>}
 
-        <section className={`${ui.card} flex flex-col gap-3`}>
-          {recipe.kind === "portion" ? (
-            <>
-              <Stepper label="Adults" value={adults} onChange={(v) => setPeople({ adults: v, children })} />
-              <Stepper label="Children" value={children} onChange={(v) => setPeople({ adults, children: v })} />
-              <p className="text-sm text-muted">
-                {factor} {factor === 1 ? "portion" : "portions"}
-                {factor === 0 && " — add someone to see the amounts"}
-              </p>
-            </>
-          ) : (
-            <div>
-              <p className={ui.label}>Batches</p>
-              <div className="grid grid-cols-5 gap-2">
-                {BATCH_MULTIPLIERS.map((m) => (
-                  <button
-                    key={m}
-                    type="button"
-                    aria-pressed={multiplier === m}
-                    onClick={() => setMultiplier(m)}
-                    className={`min-h-11 rounded-xl border font-semibold ${multiplier === m ? "border-brand bg-brand text-brand-ink" : "border-line bg-surface text-ink"}`}
-                  >
-                    ×{m}
-                  </button>
-                ))}
+        {scales && (
+          <section className={`${ui.card} flex flex-col gap-3`}>
+            {recipe.kind === "portion" ? (
+              <>
+                <Stepper label="Adults" value={adults} onChange={(v) => setPeople({ adults: v, children })} />
+                <Stepper label="Children" value={children} onChange={(v) => setPeople({ adults, children: v })} />
+                <p className="text-sm text-muted">
+                  {factor} {factor === 1 ? "portion" : "portions"}
+                  {factor === 0 && " — add someone to see the amounts"}
+                </p>
+              </>
+            ) : (
+              <div>
+                <p className={ui.label}>Batches</p>
+                <div className="grid grid-cols-5 gap-2">
+                  {BATCH_MULTIPLIERS.map((m) => (
+                    <button
+                      key={m}
+                      type="button"
+                      aria-pressed={multiplier === m}
+                      onClick={() => setMultiplier(m)}
+                      className={`min-h-11 rounded-xl border font-semibold ${multiplier === m ? "border-brand bg-brand text-brand-ink" : "border-line bg-surface text-ink"}`}
+                    >
+                      ×{m}
+                    </button>
+                  ))}
+                </div>
               </div>
-            </div>
-          )}
-        </section>
+            )}
+          </section>
+        )}
 
-        <section>
-          <h3 className="mb-2 font-display text-2xl">Ingredients</h3>
-          <ul className="divide-y divide-line rounded-2xl border border-line bg-surface">
-            {recipe.ingredients.map((ingredient, i) => {
-              const amount = formatAmount(scaleQuantity(ingredient, factor), ingredient.unit);
-              return (
-                <li key={i} className="flex gap-3 px-4 py-3">
-                  <span className="w-24 shrink-0 text-right font-semibold tabular-nums text-brand">{amount}</span>
-                  <span className="min-w-0">
-                    {ingredient.name}
-                    {ingredient.note && <span className="text-muted">, {ingredient.note}</span>}
-                    {ingredient.quantity === null && !ingredient.note && <span className="text-muted">, to taste</span>}
+        {recipe.ingredients.length > 0 && (
+          <section>
+            <h3 className="mb-2 font-display text-2xl">Ingredients</h3>
+            <ul className="divide-y divide-line rounded-2xl border border-line bg-surface">
+              {recipe.ingredients.map((ingredient, i) => {
+                const amount = formatAmount(scaleQuantity(ingredient, factor), ingredient.unit);
+                return (
+                  <li key={i} className="flex gap-3 px-4 py-3">
+                    <span className="w-24 shrink-0 text-right font-semibold tabular-nums text-brand">{amount}</span>
+                    <span className="min-w-0">
+                      {ingredient.name}
+                      {ingredient.note && <span className="text-muted">, {ingredient.note}</span>}
+                      {ingredient.quantity === null && !ingredient.note && <span className="text-muted">, to taste</span>}
+                    </span>
+                  </li>
+                );
+              })}
+            </ul>
+          </section>
+        )}
+
+        {recipe.steps.length > 0 && (
+          <section>
+            <h3 className="mb-2 font-display text-2xl">Method</h3>
+            <ol className="flex flex-col gap-4">
+              {recipe.steps.map((step, i) => (
+                <li key={i} className="flex gap-3">
+                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-brand font-display font-bold text-brand-ink">
+                    {i + 1}
                   </span>
+                  <p className="pt-1 leading-relaxed whitespace-pre-wrap">{step}</p>
                 </li>
-              );
-            })}
-          </ul>
-        </section>
+              ))}
+            </ol>
+          </section>
+        )}
 
-        <section>
-          <h3 className="mb-2 font-display text-2xl">Method</h3>
-          <ol className="flex flex-col gap-4">
-            {recipe.steps.map((step, i) => (
-              <li key={i} className="flex gap-3">
-                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-brand font-display font-bold text-brand-ink">
-                  {i + 1}
-                </span>
-                <p className="pt-1 leading-relaxed whitespace-pre-wrap">{step}</p>
-              </li>
-            ))}
-          </ol>
-        </section>
-
-        {(recipe.photo_paths.length > 0 || recipe.source_url || recipe.source_text) && (
+        {hasSource && (
           <section className="flex flex-col gap-3">
             <h3 className="font-display text-2xl">Source</h3>
             <PhotoStrip paths={recipe.photo_paths} />
