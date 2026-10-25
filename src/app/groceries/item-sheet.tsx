@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { ui } from "@/components/ui";
 import { deleteItem, fileItem, setItemPlaces, updateItem } from "@/lib/groceries/db";
-import type { Groceries, Item } from "@/lib/groceries/types";
+import { NOT_SOLD, type Groceries, type Item } from "@/lib/groceries/types";
 import type { useGroceries } from "@/lib/groceries/use-groceries";
 
 type Props = {
@@ -19,7 +19,7 @@ const byPosition = <T extends { position: number }>(a: T, b: T) => a.position - 
 export function ItemSheet({ item, data, change, onClose }: Props) {
   const initialPlaces = data.itemPlaces.filter((p) => p.item_id === item.id).map((p) => p.place_id);
   const initialAisles = Object.fromEntries(
-    data.itemAisles.filter((f) => f.item_id === item.id).map((f) => [f.store_id, f.aisle_id]),
+    data.itemAisles.filter((f) => f.item_id === item.id).map((f) => [f.store_id, f.aisle_id ?? NOT_SOLD]),
   );
   const [name, setName] = useState(item.name);
   const [note, setNote] = useState(item.note ?? "");
@@ -47,8 +47,8 @@ export function ItemSheet({ item, data, change, onClose }: Props) {
         itemAisles: [
           ...d.itemAisles.filter((f) => f.item_id !== item.id),
           ...Object.entries(aisles)
-            .filter(([, aisle_id]) => aisle_id)
-            .map(([store_id, aisle_id]) => ({ item_id: item.id, store_id, aisle_id })),
+            .filter(([, choice]) => choice)
+            .map(([store_id, choice]) => ({ item_id: item.id, store_id, aisle_id: choice === NOT_SOLD ? null : choice })),
         ],
       }),
       async () => {
@@ -127,6 +127,7 @@ export function ItemSheet({ item, data, change, onClose }: Props) {
                       className={`${ui.input} w-auto max-w-[60%]`}
                     >
                       <option value="">Not sorted yet</option>
+                      <option value={NOT_SOLD}>Not sold here</option>
                       {data.aisles
                         .filter((a) => a.store_id === store.id)
                         .sort(byPosition)

@@ -40,6 +40,8 @@ export type ShopView = {
   oneOffs: Item[];
   unsorted: Item[];
   aisles: { aisle: Aisle; items: Item[] }[];
+  /** Needed, but marked as not sold at this supermarket. */
+  notSold: Item[];
 };
 
 /** The shop view: only items we need, by the supermarket's aisles in walking order. */
@@ -47,12 +49,13 @@ export function shopView(data: Groceries, storeId: string): ShopView {
   const needed = data.items.filter((i) => i.status === "need").sort(byName);
   const aisles = data.aisles.filter((a) => a.store_id === storeId).sort(byPosition);
   const aisleIds = new Set(aisles.map((a) => a.id));
-  const aisleOf = new Map(
-    data.itemAisles.filter((f) => f.store_id === storeId && aisleIds.has(f.aisle_id)).map((f) => [f.item_id, f.aisle_id]),
-  );
+  const filings = data.itemAisles.filter((f) => f.store_id === storeId);
+  const aisleOf = new Map(filings.filter((f) => f.aisle_id && aisleIds.has(f.aisle_id)).map((f) => [f.item_id, f.aisle_id]));
+  const notSold = new Set(filings.filter((f) => f.aisle_id === null).map((f) => f.item_id));
   return {
     oneOffs: needed.filter((i) => i.is_one_off),
-    unsorted: needed.filter((i) => !i.is_one_off && !aisleOf.has(i.id)),
+    notSold: needed.filter((i) => !i.is_one_off && notSold.has(i.id)),
+    unsorted: needed.filter((i) => !i.is_one_off && !aisleOf.has(i.id) && !notSold.has(i.id)),
     aisles: aisles
       .map((aisle) => ({ aisle, items: needed.filter((i) => !i.is_one_off && aisleOf.get(i.id) === aisle.id) }))
       .filter((a) => a.items.length > 0),

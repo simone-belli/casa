@@ -20,7 +20,7 @@ Same as the rest of Casa: two users, one shared list, live updates, mobile-first
 - **Item**: something we buy regularly, e.g. "Oat milk". It is either **have** or **need**.
 - **Home place**: where an item lives at home. The places are fixed, in this order: **Fruit, Fridge, Freezer, Pantry, Bathroom, Clean & wash, Other**. An item can be in **one or more** home places, or none (it then shows under Other).
 - **Supermarket**: a shop we use (three regularly). Each one has an ordered list of **aisles** in walking order (Fruit & veg → Bakery → Meat → …), which we can edit and reorder.
-- **Filing**: for each supermarket, each item can be filed under **one** aisle of that shop.
+- **Filing**: for each supermarket, each item can be filed under **one** aisle of that shop, or marked **Not sold here**. Items not sold at a supermarket are left out of its shopping list (a short note at the bottom names any that are needed, so they can be bought elsewhere).
 - **One-off**: an item we need just this once (e.g. "birthday candles"). It is deleted once bought.
 
 ## Home view (taking stock)
@@ -79,7 +79,7 @@ Supermarket filings aren't guessed. They're done while shopping, through **Not s
 - `grocery_item_places`: item id, place id
 - `grocery_stores`: id, name, position
 - `grocery_aisles`: id, store id, name, position
-- `grocery_item_aisles`: item id, store id, aisle id (one per item per store)
+- `grocery_item_aisles`: item id, store id, aisle id (one per item per store; no aisle = not sold there)
 
 All tables are shared by the two users, with the same Row Level Security as the Ricettario, and Realtime is turned on for `grocery_items` (at least) so both phones update live. The chosen supermarket and the "show who added it" toggle are per-phone settings, stored on the device.
 

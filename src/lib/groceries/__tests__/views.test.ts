@@ -90,6 +90,13 @@ describe("shopView", () => {
     ]);
   });
 
+  it("leaves out items not sold at the supermarket, listing them separately", () => {
+    const view = shopView({ ...data, itemAisles: [...data.itemAisles, { item_id: "sponge", store_id: "tesco", aisle_id: null }] }, "tesco");
+    expect(names(view.unsorted)).toEqual([]);
+    expect(names(view.notSold)).toEqual(["Sponges"]);
+    expect(view.aisles.flatMap((a) => names(a.items))).not.toContain("Sponges");
+  });
+
   it("treats every item as unsorted in a supermarket without filings", () => {
     const view = shopView(data, "lidl");
     expect(names(view.unsorted)).toEqual(["Apples", "Milk", "Sponges"]);

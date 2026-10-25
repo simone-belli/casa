@@ -2,7 +2,7 @@
 
 import { supabaseBrowser } from "@/lib/supabase/client";
 import { uid } from "@/lib/uid";
-import type { Aisle, Groceries, Item, ItemAisle, ItemPlace, ItemStatus, Place, Store } from "./types";
+import { NOT_SOLD, type Aisle, type Groceries, type Item, type ItemAisle, type ItemPlace, type ItemStatus, type Place, type Store } from "./types";
 
 const TABLES = [
   "grocery_items",
@@ -93,13 +93,19 @@ export async function setItemPlaces(itemId: string, placeIds: string[]): Promise
   }
 }
 
-/** Files the item under an aisle of the supermarket, or un-files it (null). */
-export async function fileItem(itemId: string, storeId: string, aisleId: string | null): Promise<void> {
+/**
+ * Files the item under an aisle of the supermarket, marks it as not sold
+ * there (NOT_SOLD), or un-files it (null).
+ */
+export async function fileItem(itemId: string, storeId: string, choice: string | null): Promise<void> {
   const db = supabaseBrowser();
-  const { error } = aisleId
+  const { error } = choice
     ? await db
         .from("grocery_item_aisles")
-        .upsert({ item_id: itemId, store_id: storeId, aisle_id: aisleId }, { onConflict: "item_id,store_id" })
+        .upsert(
+          { item_id: itemId, store_id: storeId, aisle_id: choice === NOT_SOLD ? null : choice },
+          { onConflict: "item_id,store_id" },
+        )
     : await db.from("grocery_item_aisles").delete().eq("item_id", itemId).eq("store_id", storeId);
   check(error);
 }
@@ -150,8 +156,8 @@ export async function addStore(name: string, data: Groceries, copyFrom?: string)
   if (aisles.length > 0) check((await db.from("grocery_aisles").insert(aisles)).error);
 
   const filings = data.itemAisles
-    .filter((f) => f.store_id === copyFrom && newAisleId.has(f.aisle_id))
-    .map((f) => ({ item_id: f.item_id, store_id: storeId, aisle_id: newAisleId.get(f.aisle_id)! }));
+    .filter((f) => f.store_id === copyFrom && (f.aisle_id === null || newAisleId.has(f.aisle_id)))
+    .map((f) => ({ item_id: f.item_id, store_id: storeId, aisle_id: f.aisle_id && newAisleId.get(f.aisle_id)! }));
   if (filings.length > 0) check((await db.from("grocery_item_aisles").insert(filings)).error);
   return storeId;
 }

@@ -33,16 +33,15 @@ You need Node.js 22 or later on the computer that will run the app.
 2. **SQL Editor** → paste the contents of
    [`supabase/migrations/0001_init.sql`](supabase/migrations/0001_init.sql) → **Run**.
    This creates the tables, security rules, live updates and the private
-   `recipe-photos` bucket. Then do the same with
-   [`supabase/migrations/0002_groceries.sql`](supabase/migrations/0002_groceries.sql)
-   and then
-   [`supabase/migrations/0003_fixed_home_places.sql`](supabase/migrations/0003_fixed_home_places.sql)
-   and [`supabase/migrations/0004_freezer.sql`](supabase/migrations/0004_freezer.sql)
-   for Groceries.
+   `recipe-photos` bucket. Then do the same, in order, with each Groceries
+   migration: [`0002_groceries.sql`](supabase/migrations/0002_groceries.sql),
+   [`0003_fixed_home_places.sql`](supabase/migrations/0003_fixed_home_places.sql),
+   [`0004_freezer.sql`](supabase/migrations/0004_freezer.sql) and
+   [`0005_not_sold_here.sql`](supabase/migrations/0005_not_sold_here.sql).
 
-   **Already set up?** Run, in order, whichever of `0002`, `0003` and `0004`
-   you haven't run yet. `0003` is safe to run again; if Groceries says the
-   home places aren't set up, run it.
+   **Already set up?** Run, in order, whichever of these you haven't run yet.
+   `0003` and `0005` are safe to run again; if Groceries says the home places
+   aren't set up, run `0003`.
 3. Still in the SQL Editor, add the two of you (lower-case emails):
 
    ```sql

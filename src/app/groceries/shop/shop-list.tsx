@@ -4,7 +4,7 @@ import { useState } from "react";
 import { SafeLink } from "@/components/safe-link";
 import { ui } from "@/components/ui";
 import { createItem, deleteItem, fileItem, setStatus } from "@/lib/groceries/db";
-import type { Item } from "@/lib/groceries/types";
+import { NOT_SOLD, type Item } from "@/lib/groceries/types";
 import { useDeviceSetting, useGroceries } from "@/lib/groceries/use-groceries";
 import { shopView } from "@/lib/groceries/views";
 import { useHousehold } from "@/lib/household";
@@ -74,10 +74,13 @@ export function ShopList() {
     );
   };
 
-  const file = (item: Item, aisleId: string) =>
+  const file = (item: Item, choice: string) =>
     void change(
-      (d) => ({ ...d, itemAisles: [...d.itemAisles, { item_id: item.id, store_id: store.id, aisle_id: aisleId }] }),
-      () => fileItem(item.id, store.id, aisleId),
+      (d) => ({
+        ...d,
+        itemAisles: [...d.itemAisles, { item_id: item.id, store_id: store.id, aisle_id: choice === NOT_SOLD ? null : choice }],
+      }),
+      () => fileItem(item.id, store.id, choice),
     );
 
   const row = (item: Item, sortable = false) => {
@@ -100,7 +103,7 @@ export function ShopList() {
           {who && <span className="shrink-0 pl-2 text-xs text-muted">{who}</span>}
           <EditButton name={item.name} onClick={() => setEditing(item.id)} />
         </div>
-        {sortable && storeAisles.length > 0 && (
+        {sortable && (
           <select
             value=""
             onChange={(e) => e.target.value && file(item, e.target.value)}
@@ -108,6 +111,7 @@ export function ShopList() {
             className="mx-4 mb-2 -mt-1 rounded-lg border border-dashed border-line bg-bg px-2 py-1.5 text-sm text-muted"
           >
             <option value="">Which aisle? (remembered for next time)</option>
+            <option value={NOT_SOLD}>Not sold here</option>
             {storeAisles.map((a) => (
               <option key={a.id} value={a.id}>
                 {a.name}
@@ -164,6 +168,12 @@ export function ShopList() {
         </>
       )}
       {view.aisles.map(({ aisle, items }) => group(aisle.id, aisle.name, items))}
+
+      {view.notSold.length > 0 && (
+        <p className="px-1 text-sm text-muted">
+          Not sold at {store.name}: {view.notSold.map((i) => i.name).join(", ")}.
+        </p>
+      )}
 
       {inTrolley.length > 0 && (
         <section>
