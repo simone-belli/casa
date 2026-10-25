@@ -6,13 +6,13 @@ home life. Specs live in [`docs/`](docs):
 - [`docs/CASA-SPEC.md`](docs/CASA-SPEC.md): the hub
 - [`docs/RICETTARIO-SPEC.md`](docs/RICETTARIO-SPEC.md): the recipe section
 - [`docs/AGENDA-SPEC.md`](docs/AGENDA-SPEC.md): the calendar and tasks section (specced, not built yet)
-- [`docs/GROCERIES-SPEC.md`](docs/GROCERIES-SPEC.md): the shopping list section (specced, not built yet)
+- [`docs/GROCERIES-SPEC.md`](docs/GROCERIES-SPEC.md): the shopping list section
 
 | Section | Status |
 |---|---|
 | **Ricettario** (recipes) | v0: add by typing/dictation, photo or link; scaling; editing; live sync |
 | **Agenda** (calendar and tasks) | Specced; "coming soon" placeholder |
-| **Groceries** (shopping list) | "Coming soon" placeholder |
+| **Groceries** (shopping list) | v1: home and shopping views, quick add, one-offs, supermarkets and aisles, paste import; live sync |
 
 v0 runs on a computer at home and is opened from the phones over Wi-Fi; it
 isn't deployed anywhere yet.
@@ -33,7 +33,11 @@ You need Node.js 22 or later on the computer that will run the app.
 2. **SQL Editor** → paste the contents of
    [`supabase/migrations/0001_init.sql`](supabase/migrations/0001_init.sql) → **Run**.
    This creates the tables, security rules, live updates and the private
-   `recipe-photos` bucket.
+   `recipe-photos` bucket. Then do the same with
+   [`supabase/migrations/0002_groceries.sql`](supabase/migrations/0002_groceries.sql)
+   for Groceries.
+
+   **Already set up before Groceries?** Just run `0002_groceries.sql` once.
 3. Still in the SQL Editor, add the two of you (lower-case emails):
 
    ```sql
@@ -95,7 +99,7 @@ Keep the computer awake while you're using the app. On a Mac, run
 
 ```sh
 npm run dev        # dev server with hot reload, also reachable on the LAN
-npm test           # unit tests (scaling, formatting, search, link parsing)
+npm test           # unit tests (scaling, formatting, search, link parsing, grocery views)
 npm run lint
 npm run typecheck
 npm run icons      # regenerate app icons after changing a logo in logos/
@@ -107,9 +111,11 @@ Layout:
 src/app/(casa)/        Casa home, sign-in, settings          (terracotta theme)
 src/app/ricettario/    recipe list, add, view, edit          (trattoria red)
 src/app/agenda/        coming-soon placeholder               (navy and amber)
-src/app/groceries/     coming-soon placeholder               (green and kraft)
+src/app/groceries/     at home, shopping, settings, import   (green and kraft)
 src/app/api/ricettario/parse/   server route that reads recipes with Claude
+src/app/api/groceries/sort/     server route that sorts a pasted list with Claude
 src/lib/recipes/       data model, scaling, formatting, search, database calls
+src/lib/groceries/     data model, list views, database calls, live data hook
 src/lib/ai/            Claude prompt, link fetching and page extraction
 supabase/migrations/   database schema and security rules
 logos/                 source logos; public/brand and public/icons are generated

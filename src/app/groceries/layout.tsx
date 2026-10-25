@@ -1,6 +1,6 @@
 import type { Metadata, Viewport } from "next";
 
-export const metadata: Metadata = { title: "Groceries" };
+export const metadata: Metadata = { title: { default: "Groceries", template: "%s · Groceries" } };
 export const viewport: Viewport = { themeColor: "#2f6b47" };
 
 export default function GroceriesLayout({ children }: { children: React.ReactNode }) {

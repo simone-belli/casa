@@ -6,9 +6,9 @@
 
 - One mobile-first web app (PWA), one home-screen icon, one login per person, shared data.
 - Designed to host several sections; more may be added later.
-- Initial sections: **Ricettario** (build now), **Agenda** and **Groceries** (empty placeholders for now).
+- Initial sections: **Ricettario** and **Groceries** (built), **Agenda** (empty placeholder for now).
 - Each section has its own name, logo and visual theme. Casa, Ricettario, Agenda and Groceries do not share a theme.
-- Home screen: the Casa logo and large buttons for **Ricettario**, **Agenda** and **Groceries** (the last two marked "coming soon"), with a small link to Settings.
+- Home screen: the Casa logo and large buttons for **Ricettario**, **Agenda** and **Groceries** (Agenda marked "coming soon"), with a small link to Settings.
 - Settings (Casa level, shared): default family size, the household members, sign out.
 - v0 is not deployed: it runs on a computer at home and the phones open it over Wi-Fi. Moving to Vercel later needs no code changes.
 
@@ -20,9 +20,9 @@ Specified in [RICETTARIO-SPEC.md](RICETTARIO-SPEC.md).
 
 Specified in [AGENDA-SPEC.md](AGENDA-SPEC.md). Until it's built, it stays a "coming soon" section in Casa's navigation.
 
-## Section 3 — Groceries (specced, not built yet)
+## Section 3 — Groceries (v1 built)
 
-Specified in [GROCERIES-SPEC.md](GROCERIES-SPEC.md). Until it's built, it stays a "coming soon" section in Casa's navigation.
+Specified in [GROCERIES-SPEC.md](GROCERIES-SPEC.md).
 
 ## Logos
 

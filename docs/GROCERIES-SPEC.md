@@ -58,8 +58,8 @@ When an item switches to need, the app records who did it. A toggle (**Show who 
 ## Managing items, places and supermarkets
 
 - Items: rename, change home places, add a note (e.g. "the Oatly one", "2 packs"), change the filing per supermarket, delete (with confirmation).
-- Home places: add, rename, reorder by dragging, delete. Deleting a place doesn't delete its items, which just lose that place.
-- Supermarkets: add, rename, delete (with confirmation). Aisles: add, rename, reorder by dragging, delete. Items filed under a deleted aisle go back to **Not sorted yet** for that shop.
+- Home places: add, rename, move up and down, delete. Deleting a place doesn't delete its items, which just lose that place.
+- Supermarkets: add, rename, delete (with confirmation). Aisles: add, rename, move up and down, delete. Items filed under a deleted aisle go back to **Not sorted yet** for that shop.
 - **Adding a supermarket** can start empty or **copy another supermarket's aisles and filings**, which we then adjust.
 
 ## Importing the current Notes list
