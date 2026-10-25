@@ -5,6 +5,7 @@ home life. Specs live in [`docs/`](docs):
 
 - [`docs/CASA-SPEC.md`](docs/CASA-SPEC.md): the hub, plus the captured Agenda requirements
 - [`docs/RICETTARIO-SPEC.md`](docs/RICETTARIO-SPEC.md): the recipe section
+- [`docs/GROCERIES-SPEC.md`](docs/GROCERIES-SPEC.md): the shopping list section (specced, not built yet)
 
 | Section | Status |
 |---|---|

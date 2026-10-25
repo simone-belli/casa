@@ -28,9 +28,9 @@ Agenda is not part of the current build. Show it in Casa's navigation as an empt
 - Each person can choose whether dated tasks appear in their iPhone calendar. The default is still to be decided.
 - There is an optional periodic nudge about open tasks that are still undecided.
 
-## Section 3 — Groceries (later; placeholder only for now)
+## Section 3 — Groceries (specced, not built yet)
 
-Groceries is not part of the current build. Show it in Casa's navigation as an empty "coming soon" section. The idea so far: a shared grocery list that we keep up to date together, organised around the specific supermarkets we shop at so each trip is quicker. To be specced later.
+Specified in [GROCERIES-SPEC.md](GROCERIES-SPEC.md). Until it's built, it stays a "coming soon" section in Casa's navigation.
 
 ## Logos
 
