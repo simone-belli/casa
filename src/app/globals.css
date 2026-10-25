@@ -54,6 +54,21 @@
   --body-font: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
 }
 
+[data-theme="groceries"] {
+  --bg: #f3f6ef;
+  --surface: #ffffff;
+  --ink: #1e3b2a;
+  --muted: #5e7466;
+  --line: #d6e2d4;
+  --brand: #2f6b47;
+  --brand-ink: #ffffff;
+  --accent: #d9a465;
+  --danger: #a3261b;
+  --display-font: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --title-style: normal;
+  --body-font: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
 @theme inline {
   --color-bg: var(--bg);
   --color-surface: var(--surface);

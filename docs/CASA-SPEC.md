@@ -6,9 +6,9 @@
 
 - One mobile-first web app (PWA), one home-screen icon, one login per person, shared data.
 - Designed to host several sections; more may be added later.
-- Initial sections: **Ricettario** (build now) and **Agenda** (empty placeholder for now).
-- Each section has its own name, logo and visual theme. Casa, Ricettario and Agenda do not share a theme.
-- Home screen: the Casa logo and two large buttons, **Ricettario** and **Agenda** (marked "coming soon"), with a small link to Settings.
+- Initial sections: **Ricettario** (build now), **Agenda** and **Groceries** (empty placeholders for now).
+- Each section has its own name, logo and visual theme. Casa, Ricettario, Agenda and Groceries do not share a theme.
+- Home screen: the Casa logo and large buttons for **Ricettario**, **Agenda** and **Groceries** (the last two marked "coming soon"), with a small link to Settings.
 - Settings (Casa level, shared): default family size, the household members, sign out.
 - v0 is not deployed: it runs on a computer at home and the phones open it over Wi-Fi. Moving to Vercel later needs no code changes.
 
@@ -28,6 +28,10 @@ Agenda is not part of the current build. Show it in Casa's navigation as an empt
 - Each person can choose whether dated tasks appear in their iPhone calendar. The default is still to be decided.
 - There is an optional periodic nudge about open tasks that are still undecided.
 
+## Section 3 — Groceries (later; placeholder only for now)
+
+Groceries is not part of the current build. Show it in Casa's navigation as an empty "coming soon" section. The idea so far: a shared grocery list that we keep up to date together, organised around the specific supermarkets we shop at so each trip is quicker. To be specced later.
+
 ## Logos
 
-The chosen logos are in [`/logos`](../logos): `casa.svg` (also the home-screen icon), `ricettario.svg` and `agenda.svg`. Each section's theme colours come from its logo.
+The chosen logos are in [`/logos`](../logos): `casa.svg` (also the home-screen icon), `ricettario.svg`, `agenda.svg` and `groceries.svg`. Each section's theme colours come from its logo.

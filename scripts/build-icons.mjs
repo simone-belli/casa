@@ -11,7 +11,7 @@ const iconsDir = path.join(root, "public/icons");
 fs.mkdirSync(brandDir, { recursive: true });
 fs.mkdirSync(iconsDir, { recursive: true });
 
-const sections = ["casa", "ricettario", "agenda"];
+const sections = ["casa", "ricettario", "agenda", "groceries"];
 for (const name of sections) {
   fs.copyFileSync(path.join(logosDir, `${name}.svg`), path.join(brandDir, `${name}.svg`));
 }

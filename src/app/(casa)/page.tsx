@@ -5,6 +5,7 @@ import { ui } from "@/components/ui";
 const SECTIONS = [
   { href: "/ricettario", logo: "/brand/ricettario.svg", name: "Ricettario", blurb: "Our recipes", soon: false },
   { href: "/agenda", logo: "/brand/agenda.svg", name: "Agenda", blurb: "Coming soon", soon: true },
+  { href: "/groceries", logo: "/brand/groceries.svg", name: "Groceries", blurb: "Coming soon", soon: true },
 ];
 
 export default function CasaHome() {

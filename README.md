@@ -10,6 +10,7 @@ home life. Specs live in [`docs/`](docs):
 |---|---|
 | **Ricettario** (recipes) | v0: add by typing/dictation, photo or link; scaling; editing; live sync |
 | **Agenda** (calendar and tasks) | "Coming soon" placeholder |
+| **Groceries** (shopping list) | "Coming soon" placeholder |
 
 v0 runs on a computer at home and is opened from the phones over Wi-Fi; it
 isn't deployed anywhere yet.
@@ -104,6 +105,7 @@ Layout:
 src/app/(casa)/        Casa home, sign-in, settings          (terracotta theme)
 src/app/ricettario/    recipe list, add, view, edit          (trattoria red)
 src/app/agenda/        coming-soon placeholder               (navy and amber)
+src/app/groceries/     coming-soon placeholder               (green and kraft)
 src/app/api/ricettario/parse/   server route that reads recipes with Claude
 src/lib/recipes/       data model, scaling, formatting, search, database calls
 src/lib/ai/            Claude prompt, link fetching and page extraction
