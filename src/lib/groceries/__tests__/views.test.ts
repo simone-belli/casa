@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { EMPTY_GROCERIES, type Groceries, type Item } from "../types";
-import { homeGroups, matchItems, pastedLines, sameName, shopView } from "../views";
+import { homeGroups, matchItems, pastedChunks, pastedLines, sameName, shopView } from "../views";
 
 const item = (id: string, name: string, status: Item["status"] = "have", is_one_off = false): Item => ({
   id,
@@ -118,5 +118,35 @@ describe("pastedLines", () => {
 
   it("keeps hyphens inside names", () => {
     expect(pastedLines("Washing-up liquid")).toEqual(["Washing-up liquid"]);
+  });
+});
+
+describe("pastedChunks", () => {
+  const section = (title: string, n: number) => [title, ...Array.from({ length: n }, (_, i) => `* ${title} ${i + 1}`)].join("\n");
+
+  it("keeps sections whole, cutting only at blank lines", () => {
+    const text = [section("Fruit", 30), section("Meat", 30), section("Pasta", 30)].join("\n\n\n");
+    const chunks = pastedChunks(text, 80);
+    expect(chunks.map((c) => c.length)).toEqual([62, 31]);
+    expect(chunks[1][0]).toBe("Pasta");
+  });
+
+  it("splits a section longer than the limit, repeating its heading", () => {
+    const chunks = pastedChunks(section("Spices", 99), 40);
+    expect(chunks.map((c) => c.length)).toEqual([40, 40, 22]);
+    expect(chunks.map((c) => c[0])).toEqual(["Spices", "Spices", "Spices"]);
+    expect(chunks.flat().filter((l) => l !== "Spices")).toHaveLength(99);
+  });
+
+  it("keeps items after a blank line inside a section with their heading", () => {
+    const text = `${section("Fruit", 60)}\n\n${section("Meat", 20)}\n\n* Nduja\n\n* Bottarga\n\n${section("Pasta", 20)}`;
+    const chunks = pastedChunks(text, 80);
+    expect(chunks.map((c) => c.length)).toEqual([61, 44]);
+    expect(chunks[1].slice(0, 1)).toEqual(["Meat"]);
+    expect(chunks[1]).toContain("Bottarga");
+  });
+
+  it("returns nothing for an empty paste", () => {
+    expect(pastedChunks(" \n\n ")).toEqual([]);
   });
 });

@@ -31,22 +31,32 @@ Merge exact duplicates. Keep the original order otherwise.`;
 
 export class SortError extends Error {}
 
+/** Sorts one part of a pasted list (keep parts to a few dozen lines). */
 export async function sortGroceries(lines: string[], places: string[]): Promise<SortedGroceries> {
   const client = new Anthropic();
-  const response = await client.beta.messages.parse({
-    model: MODEL,
-    max_tokens: 16000,
-    betas: ["server-side-fallback-2026-07-01"],
-    fallbacks: "default",
-    output_config: { effort: "low", format: betaZodOutputFormat(sortedSchema) },
-    system: SYSTEM_PROMPT,
-    messages: [
-      {
-        role: "user",
-        content: `Existing home places: ${places.length > 0 ? places.map((p) => `"${p}"`).join(", ") : "(none yet)"}\n\nThe pasted list:\n<list>\n${lines.join("\n")}\n</list>`,
-      },
-    ],
-  });
+  const response = await client.beta.messages
+    .parse({
+      model: MODEL,
+      max_tokens: 16000,
+      betas: ["server-side-fallback-2026-07-01"],
+      fallbacks: "default",
+      output_config: { effort: "low", format: betaZodOutputFormat(sortedSchema) },
+      system: SYSTEM_PROMPT,
+      messages: [
+        {
+          role: "user",
+          content: `Existing home places: ${places.length > 0 ? places.map((p) => `"${p}"`).join(", ") : "(none yet)"}\n\nThe pasted list:\n<list>\n${lines.join("\n")}\n</list>`,
+        },
+      ],
+    })
+    .catch((error: unknown) => {
+      // The SDK parses the answer before we can look at stop_reason, so a
+      // reply cut off at max_tokens surfaces here as an unparseable answer.
+      if (error instanceof Anthropic.AnthropicError && !(error instanceof Anthropic.APIError)) {
+        throw new SortError("This part of the list was too long to sort in one go. Try pasting a shorter list.");
+      }
+      throw error;
+    });
 
   if (response.stop_reason === "refusal") throw new SortError("The AI declined to sort this list.");
   if (response.stop_reason === "max_tokens") throw new SortError("This list is too long to sort in one go. Try pasting half of it.");

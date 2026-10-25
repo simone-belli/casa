@@ -41,7 +41,7 @@ export function ImportList() {
       const response = await fetch("/api/groceries/sort", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ lines: lines.map((l) => l.slice(0, 200)), places: placeNames }),
+        body: JSON.stringify({ text, places: placeNames }),
       });
       const body = (await response.json().catch(() => ({ error: "The server didn't answer. Please try again." }))) as SortResponse;
       if ("error" in body) setError(body.error);

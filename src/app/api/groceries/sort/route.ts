@@ -1,12 +1,18 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { SortError, sortGroceries } from "@/lib/ai/sort-groceries";
+import { pastedChunks } from "@/lib/groceries/views";
 import { currentMember } from "@/lib/supabase/server";
 
 const requestSchema = z.object({
-  lines: z.array(z.string().trim().min(1).max(200)).min(1).max(1000),
+  /** The pasted list as is; blank lines mark where sections end. */
+  text: z.string().trim().min(1).max(50_000),
   places: z.array(z.string().trim().min(1).max(100)).max(100),
 });
+
+/** Most lines sorted in one go; longer lists are sorted in parts, in parallel. */
+const LINES_PER_PART = 80;
+const MAX_LINES = 1000;
 
 export type SortResponse = { items: { name: string; places: string[] }[] } | { error: string };
 
@@ -17,10 +23,18 @@ export async function POST(request: Request): Promise<NextResponse<SortResponse>
   const body = requestSchema.safeParse(await request.json().catch(() => null));
   if (!body.success) return NextResponse.json({ error: "Nothing to sort." }, { status: 400 });
 
+  const parts = pastedChunks(body.data.text, LINES_PER_PART).map((lines) => lines.map((l) => l.slice(0, 200)));
+  const lineCount = parts.reduce((n, p) => n + p.length, 0);
+  if (lineCount === 0) return NextResponse.json({ error: "Nothing to sort." }, { status: 400 });
+  if (lineCount > MAX_LINES) {
+    return NextResponse.json({ error: `That's ${lineCount} lines; paste at most ${MAX_LINES} at a time.` }, { status: 400 });
+  }
+
   try {
-    const sorted = await sortGroceries(body.data.lines, body.data.places);
+    const sorted = await Promise.all(parts.map((lines) => sortGroceries(lines, body.data.places)));
     const seen = new Set<string>();
-    const items = sorted.items
+    const items = sorted
+      .flatMap((s) => s.items)
       .map((i) => ({ name: i.name.trim(), places: [...new Set(i.places.map((p) => p.trim()).filter(Boolean))] }))
       .filter((i) => {
         const key = i.name.toLowerCase();

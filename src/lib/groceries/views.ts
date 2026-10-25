@@ -93,3 +93,47 @@ export function pastedLines(text: string): string[] {
     .map((line) => line.replace(/^(?:[\s\-*•◦▪‣☐☑☒✓✔✅◯○●︎️]|\[[ xX✓]?\])+/u, "").trim())
     .filter(Boolean);
 }
+
+const BULLET = /^\s*(?:[-*•◦▪‣☐☑☒✓✔✅◯○●]|\[[ xX✓]?\])/u;
+
+/**
+ * Splits a pasted list into parts of at most `max` lines for sorting. A
+ * section starts at a blank line followed by a line without a bullet (its
+ * heading); sections are kept whole where possible, and a section too long
+ * for one part is split with its heading repeated, so every line is sorted
+ * knowing which heading it was under.
+ */
+export function pastedChunks(text: string, max = 80): string[][] {
+  const sections: { heading: string | null; lines: string[] }[] = [];
+  for (const block of text.split(/\r?\n\s*\r?\n/)) {
+    const lines = pastedLines(block);
+    if (lines.length === 0) continue;
+    const firstRaw = block.split(/\r?\n/).find((l) => l.trim()) ?? "";
+    const startsSection = !BULLET.test(firstRaw);
+    if (startsSection || sections.length === 0) {
+      sections.push({ heading: startsSection ? lines[0] : null, lines: [...lines] });
+    } else {
+      sections[sections.length - 1].lines.push(...lines);
+    }
+  }
+
+  // Sections too long for one part become several, each under the heading.
+  const units = sections.flatMap(({ heading, lines }) => {
+    if (lines.length <= max) return [lines];
+    const items = heading ? lines.slice(1) : lines;
+    const size = heading ? max - 1 : max;
+    const pieces: string[][] = [];
+    for (let i = 0; i < items.length; i += size) {
+      pieces.push([...(heading ? [heading] : []), ...items.slice(i, i + size)]);
+    }
+    return pieces;
+  });
+
+  const chunks: string[][] = [];
+  for (const unit of units) {
+    const last = chunks[chunks.length - 1];
+    if (last && last.length + unit.length <= max) last.push(...unit);
+    else chunks.push([...unit]);
+  }
+  return chunks;
+}
