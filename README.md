@@ -3,14 +3,15 @@
 Simone and Kat's household hub: one mobile web app with a section per area of
 home life. Specs live in [`docs/`](docs):
 
-- [`docs/CASA-SPEC.md`](docs/CASA-SPEC.md): the hub, plus the captured Agenda requirements
+- [`docs/CASA-SPEC.md`](docs/CASA-SPEC.md): the hub
 - [`docs/RICETTARIO-SPEC.md`](docs/RICETTARIO-SPEC.md): the recipe section
+- [`docs/AGENDA-SPEC.md`](docs/AGENDA-SPEC.md): the calendar and tasks section (specced, not built yet)
 - [`docs/GROCERIES-SPEC.md`](docs/GROCERIES-SPEC.md): the shopping list section (specced, not built yet)
 
 | Section | Status |
 |---|---|
 | **Ricettario** (recipes) | v0: add by typing/dictation, photo or link; scaling; editing; live sync |
-| **Agenda** (calendar and tasks) | "Coming soon" placeholder |
+| **Agenda** (calendar and tasks) | Specced; "coming soon" placeholder |
 | **Groceries** (shopping list) | "Coming soon" placeholder |
 
 v0 runs on a computer at home and is opened from the phones over Wi-Fi; it

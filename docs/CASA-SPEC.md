@@ -16,17 +16,9 @@
 
 Specified in [RICETTARIO-SPEC.md](RICETTARIO-SPEC.md).
 
-## Section 2 — Agenda (later; placeholder only for now)
+## Section 2 — Agenda (specced, not built yet)
 
-Agenda is not part of the current build. Show it in Casa's navigation as an empty "coming soon" section. The requirements we've captured so far are below, for reference only.
-
-- One section with two views: a **calendar view** for anything dated and a **task list** with open or undecided tasks at the top.
-- Calendar: fixed and recurring events with times, ideally synced with Apple Calendar on both iPhones.
-- Tasks: one person proposes a task to the other, who can accept or decline it. Reminders can be set on tasks.
-- Open tasks can leave both the owner and the timing undecided.
-- Task lifecycle: open, proposed, accepted or declined, done.
-- Each person can choose whether dated tasks appear in their iPhone calendar. The default is still to be decided.
-- There is an optional periodic nudge about open tasks that are still undecided.
+Specified in [AGENDA-SPEC.md](AGENDA-SPEC.md). Until it's built, it stays a "coming soon" section in Casa's navigation.
 
 ## Section 3 — Groceries (specced, not built yet)
 
