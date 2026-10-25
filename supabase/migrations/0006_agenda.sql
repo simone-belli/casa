@@ -60,11 +60,10 @@ create table public.agenda_items (
     (recurring_item_id is null) = (original_start is null)
     and (recurring_item_id is null or recurrence is null)
     and (not cancelled or recurring_item_id is not null)
-  )
+  ),
+  -- One row per occurrence of a series.
+  constraint agenda_items_occurrence_unique unique (recurring_item_id, original_start)
 );
-
-create unique index agenda_items_occurrence_idx on public.agenda_items (recurring_item_id, original_start)
-  where recurring_item_id is not null;
 
 -- Tasks are open unless said otherwise; events have no status. Records who
 -- ticked a task off, and when.
@@ -164,9 +163,11 @@ create table public.agenda_settings (
 -- Google Calendar sync.
 -- ---------------------------------------------------------------------------
 
--- Which Google event each item is written to.
+-- Which Google event each item is written to. Not tied to the item with a
+-- foreign key: a link left behind by a deleted item tells the server which
+-- Google event to delete.
 create table public.agenda_google_links (
-  item_id uuid primary key references public.agenda_items (id) on delete cascade,
+  item_id uuid primary key,
   google_event_id text not null unique,
   google_etag text,
   last_synced_at timestamptz not null default now()

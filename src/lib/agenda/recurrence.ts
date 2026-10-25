@@ -322,14 +322,15 @@ export function repeatChoiceOf(lines: string[] | null, start: string): RepeatCho
 const WEEKDAY_NAMES = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 const ORDINALS: Record<number, string> = { 1: "first", 2: "second", 3: "third", 4: "fourth", 5: "fifth", [-1]: "last" };
 
-function ordinalDay(n: number): string {
-  if (n < 0) return n === -1 ? "last day" : `${-n}${suffix(-n)} to last day`;
-  return `${n}${suffix(n)}`;
+/** E.g. "1st", "22nd", "13th". */
+export function ordinal(n: number): string {
+  const suffix = n % 100 >= 11 && n % 100 <= 13 ? "th" : (({ 1: "st", 2: "nd", 3: "rd" } as Record<number, string>)[n % 10] ?? "th");
+  return `${n}${suffix}`;
 }
 
-function suffix(n: number): string {
-  if (n % 100 >= 11 && n % 100 <= 13) return "th";
-  return ({ 1: "st", 2: "nd", 3: "rd" } as Record<number, string>)[n % 10] ?? "th";
+function ordinalDay(n: number): string {
+  if (n < 0) return n === -1 ? "last day" : `${ordinal(-n)} to last day`;
+  return ordinal(n);
 }
 
 const shortDate = (date: string) =>
