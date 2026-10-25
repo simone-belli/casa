@@ -149,13 +149,13 @@ describe("parseQuantity", () => {
 
 describe("meal tags", () => {
   it("splits meals from other tags", () => {
-    expect(splitMealTags(["pasta", "dinner", "lunch"])).toEqual({ meals: ["lunch", "dinner"], others: ["pasta"] });
+    expect(splitMealTags(["snack", "pasta", "dinner", "lunch"])).toEqual({ meals: ["lunch", "dinner", "snack"], others: ["pasta"] });
     expect(splitMealTags([])).toEqual({ meals: [], others: [] });
   });
 
   it("merges meals first, in order, without duplicates", () => {
     expect(mergeMealTags(["dinner", "breakfast"], ["Pasta", "pasta", "lunch", " "])).toEqual(["breakfast", "dinner", "pasta"]);
     expect(mergeMealTags([], ["dolci"])).toEqual(["dolci"]);
-    expect(mergeMealTags(["breakfast", "lunch", "dinner"], [])).toEqual(["breakfast", "lunch", "dinner"]);
+    expect(mergeMealTags(["snack", "breakfast", "lunch", "dinner"], [])).toEqual(["breakfast", "lunch", "dinner", "snack"]);
   });
 });

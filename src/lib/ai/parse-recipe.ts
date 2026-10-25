@@ -50,7 +50,7 @@ Scaling, for every ingredient:
 - "rounded": scales but must be a whole number when cooking (eggs, whole vegetables, cans).
 - "fixed": does not change with the number of people (a pinch of salt, a bay leaf, a baking tin, oil for greasing).
 
-Tips written on the page go into the step they belong to. Meals: tick the meals the dish suits ("breakfast", "lunch", "dinner"); any number, including none or all three. Tags: a few lowercase tags such as the course, main ingredient or occasion; don't repeat the meals as tags. Steps: one action per step, in order, without numbering.
+Tips written on the page go into the step they belong to. Meals: tick the meals the dish suits ("breakfast", "lunch", "dinner", "snack"); any number, including none or all of them. Tags: a few lowercase tags such as the course, main ingredient or occasion; don't repeat the meals as tags. Steps: one action per step, in order, without numbering.
 
 If the input does not contain a recipe, return an empty title, no ingredients or steps, and a warning explaining what was found instead.`;
 

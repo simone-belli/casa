@@ -42,7 +42,7 @@ After parsing, the user reviews and edits the structured recipe in a form before
 ## Recipe data model
 
 - Title, optional notes, optional tags
-- **Good for**: breakfast, lunch and/or dinner (any number, including none or all three), ticked in the form and stored as the tags `breakfast`, `lunch`, `dinner`. The AI pre-ticks them when parsing; the user can change them in the review.
+- **Good for**: breakfast, lunch, dinner and/or snack (any number, including none or all of them), ticked in the form and stored as the tags `breakfast`, `lunch`, `dinner`, `snack`. The AI pre-ticks them when parsing; the user can change them in the review.
 - **Kind**: `portion` or `batch`
   - `portion` — ingredient quantities are stored **per adult portion**
   - `batch` — quantities are stored for **one batch**, with a yield description (e.g. "1 cake, 24 cm tin", "8 biscuits")

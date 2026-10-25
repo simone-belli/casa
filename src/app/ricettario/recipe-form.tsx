@@ -185,7 +185,7 @@ export function RecipeForm({ initial, initialPortions, warnings = [], banner, su
 
         <fieldset>
           <legend className={ui.label}>Good for</legend>
-          <div className="grid grid-cols-3 gap-2">
+          <div className="grid grid-cols-2 gap-2">
             {MEALS.map((meal) => {
               const ticked = meals.includes(meal);
               return (
