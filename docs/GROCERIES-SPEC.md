@@ -18,7 +18,7 @@ Same as the rest of Casa: two users, one shared list, live updates, mobile-first
 ## Concepts
 
 - **Item**: something we buy regularly, e.g. "Oat milk". It is either **have** or **need**.
-- **Home place**: where an item lives at home. The places are fixed, in this order: **Fruit, Fridge, Pantry, Bathroom, Clean & wash, Other**. An item can be in **one or more** home places, or none (it then shows under Other).
+- **Home place**: where an item lives at home. The places are fixed, in this order: **Fruit, Fridge, Freezer, Pantry, Bathroom, Clean & wash, Other**. An item can be in **one or more** home places, or none (it then shows under Other).
 - **Supermarket**: a shop we use (three regularly). Each one has an ordered list of **aisles** in walking order (Fruit & veg → Bakery → Meat → …), which we can edit and reorder.
 - **Filing**: for each supermarket, each item can be filed under **one** aisle of that shop.
 - **One-off**: an item we need just this once (e.g. "birthday candles"). It is deleted once bought.
@@ -66,14 +66,14 @@ When an item switches to need, the app records who did it. A toggle (**Show who 
 A one-time import screen (reachable again later from settings):
 
 1. Paste the Notes checklist into a text box, one item per line. Checklist symbols and empty lines are ignored.
-2. Claude reads the lines and suggests home places for each item, from the six fixed places. If the pasted text has headings (e.g. "Fridge"), they're used as hints. Long lists are sorted in parts, cut at the headings.
+2. Claude reads the lines and suggests home places for each item, from the seven fixed places. If the pasted text has headings (e.g. "Fridge"), they're used as hints. Long lists are sorted in parts, cut at the headings.
 3. A review screen shows every item with its suggested places and a have/need switch (default **have**, since Notes' tick state may not survive the copy). We fix anything wrong and confirm. Nothing is saved before that.
 
 Supermarket filings aren't guessed. They're done while shopping, through **Not sorted yet**.
 
 ## Data model
 
-- `grocery_places`: id, name, position (the six fixed places; read-only for the app)
+- `grocery_places`: id, name, position (the seven fixed places; read-only for the app)
 - `grocery_items`: id, name, note, status (`have` / `need`), is_one_off, needed_by (user, set when switched to need), needed_at, created by / updated by, timestamps
 - `grocery_item_places`: item id, place id
 - `grocery_stores`: id, name, position

@@ -37,10 +37,11 @@ You need Node.js 22 or later on the computer that will run the app.
    [`supabase/migrations/0002_groceries.sql`](supabase/migrations/0002_groceries.sql)
    and then
    [`supabase/migrations/0003_fixed_home_places.sql`](supabase/migrations/0003_fixed_home_places.sql)
+   and [`supabase/migrations/0004_freezer.sql`](supabase/migrations/0004_freezer.sql)
    for Groceries.
 
-   **Already set up before Groceries?** Run `0002_groceries.sql` and then
-   `0003_fixed_home_places.sql`, once each. Already ran `0002`? Just run `0003`.
+   **Already set up?** Run, once each and in order, whichever of `0002`,
+   `0003` and `0004` you haven't run yet.
 3. Still in the SQL Editor, add the two of you (lower-case emails):
 
    ```sql

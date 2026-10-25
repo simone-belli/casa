@@ -21,9 +21,10 @@ const SYSTEM_PROMPT = `You help Simone and Kat move their household shopping lis
 
 For each line that is something you buy, return one item:
 - "name": the item as written, tidied up: fix obvious typos, start with a capital letter, drop checkbox symbols and quantities in brackets. Keep the language it was written in (often Italian or English); do not translate.
-- "places": where it is kept at home. There are exactly six places:
+- "places": where it is kept at home. There are exactly seven places:
   - "Fruit": fresh fruit and vegetables
-  - "Fridge": anything kept in the fridge or freezer
+  - "Fridge": anything kept in the fridge (dairy, meat, fresh fish, deli)
+  - "Freezer": frozen food and ice
   - "Pantry": dry and packaged food, tins, drinks, spices, baking
   - "Bathroom": toiletries, personal care and medicines
   - "Clean & wash": cleaning products, laundry and household supplies such as foil, bin bags and paper towel
