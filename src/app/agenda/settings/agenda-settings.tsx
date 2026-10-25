@@ -2,10 +2,11 @@
 
 import { ui } from "@/components/ui";
 import { useMySettings, useViewer } from "@/lib/agenda/use-agenda";
+import { GoogleCalendar } from "./google-calendar";
 
 const WEEKDAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
-/** Settings → Agenda: my weekly nudge. */
+/** Settings → Agenda: my weekly nudge, and the shared Google Calendar connection. */
 export function AgendaSettings() {
   const viewer = useViewer();
   const { settings, failed, save } = useMySettings(viewer?.me ?? null);
@@ -51,6 +52,7 @@ export function AgendaSettings() {
         )}
         {failed && <p className={ui.error}>Couldn&apos;t load or save your settings. Check your connection.</p>}
       </section>
+      <GoogleCalendar />
     </div>
   );
 }

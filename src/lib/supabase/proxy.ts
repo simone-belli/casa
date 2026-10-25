@@ -2,7 +2,9 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { supabaseKey, supabaseUrl } from "./env";
 
-const PUBLIC_PATHS = ["/login", "/auth/"];
+// Google's change notifications and Vercel Cron aren't signed in; those
+// routes check their own secrets.
+const PUBLIC_PATHS = ["/login", "/auth/", "/api/agenda/google/notify", "/api/agenda/google/renew"];
 
 /** Refreshes the Supabase session cookie and sends signed-out visitors to /login. */
 export async function updateSession(request: NextRequest) {

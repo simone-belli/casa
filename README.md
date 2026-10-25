@@ -11,7 +11,7 @@ home life. Specs live in [`docs/`](docs):
 | Section | Status |
 |---|---|
 | **Ricettario** (recipes) | v0: add by typing/dictation, photo or link; scaling; editing; live sync |
-| **Agenda** (calendar and tasks) | In progress: calendar and tasks views, proposals, recurring items, weekly nudge, quick add with Claude; live sync. Google Calendar sync not built yet |
+| **Agenda** (calendar and tasks) | v0: calendar and tasks views, proposals, recurring items, weekly nudge, quick add with Claude, two-way Google Calendar sync; live sync |
 | **Groceries** (shopping list) | v1: home and shopping views, quick add, one-offs, supermarkets and aisles, paste import; live sync |
 
 Casa is deployed on Vercel at `https://casa-pi-weld.vercel.app` and works from
@@ -37,10 +37,11 @@ from the server.
    [`0003_fixed_home_places.sql`](supabase/migrations/0003_fixed_home_places.sql),
    [`0004_freezer.sql`](supabase/migrations/0004_freezer.sql) and
    [`0005_not_sold_here.sql`](supabase/migrations/0005_not_sold_here.sql), then
-   the Agenda migration [`0006_agenda.sql`](supabase/migrations/0006_agenda.sql).
+   the Agenda migrations [`0006_agenda.sql`](supabase/migrations/0006_agenda.sql)
+   and [`0007_agenda_sync.sql`](supabase/migrations/0007_agenda_sync.sql).
 
    **Already set up?** Run, in order, whichever of these you haven't run yet.
-   `0003` and `0005` are safe to run again; if Groceries says the home places
+   `0003`, `0005` and `0007` are safe to run again; if Groceries says the home places
    aren't set up, run `0003`.
 3. Still in the SQL Editor, add the two of you (lower-case emails):
 
@@ -77,6 +78,9 @@ The app reads these environment variables:
   `anon` key also works, as `NEXT_PUBLIC_SUPABASE_ANON_KEY`.
 - `ANTHROPIC_API_KEY`: your Claude API key. It stays on the server; the
   phones never see it.
+- For Agenda's Google Calendar sync (optional; see step 5):
+  `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `SUPABASE_SECRET_KEY`,
+  `AGENDA_TOKEN_KEY` and `CRON_SECRET`. All of them stay on the server.
 
 On Vercel, set them under **Project → Settings → Environment Variables**. For
 local development, copy them into `.env.local`:
@@ -109,6 +113,52 @@ network, so a phone on the same Wi-Fi can open
 `http://<computer-name>.local:3000` (sign-in redirects only work for
 addresses listed in step 1.8).
 
+### 5. Google Calendar for Agenda (optional)
+
+Agenda keeps everything dated in one shared Google calendar, so it shows up in
+both your calendar apps. Agenda works without it; set it up once:
+
+1. **The Casa calendar.** In Google Calendar (on a computer), with the account
+   that will own it: **Other calendars → + → Create new calendar**, name it
+   "Casa". Then in its **Settings and sharing → Share with specific people**,
+   add the other person with *Make changes to events*.
+2. **A Google Cloud project.** At
+   [console.cloud.google.com](https://console.cloud.google.com), create a
+   project (e.g. "Casa"), then **APIs & Services → Library** → enable the
+   **Google Calendar API**.
+3. **The consent screen.** **APIs & Services → OAuth consent screen**
+   (*Google Auth Platform*): app name "Casa", user type **External**. Under
+   **Audience**, add the owner's Google account as a test user, then
+   **Publish app** (to *In production*). While it stays in *Testing*, Google
+   ends the connection every 7 days. Google shows an "unverified app" warning
+   when you connect: that's expected for a private app; choose *Continue*.
+4. **The OAuth client.** **APIs & Services → Credentials → Create
+   credentials → OAuth client ID**, type **Web application**. Under
+   *Authorised redirect URIs* add
+   `https://casa-pi-weld.vercel.app/api/agenda/google/callback` (and
+   `http://localhost:3000/api/agenda/google/callback` for local development).
+   Copy the client ID and secret into `GOOGLE_CLIENT_ID` and
+   `GOOGLE_CLIENT_SECRET`.
+5. **The other secrets:**
+   - `SUPABASE_SECRET_KEY`: Supabase → **Project Settings → API Keys** →
+     a secret key (`sb_secret_...`; the legacy `service_role` key also works).
+     The server uses it to sync while nobody is signed in. Never put it in a
+     `NEXT_PUBLIC_` variable.
+   - `AGENDA_TOKEN_KEY`: encrypts the stored Google sign-in. Generate one with
+     `openssl rand -base64 32`.
+   - `CRON_SECRET`: any long random string (e.g. `openssl rand -hex 32`).
+     Vercel sends it with the daily job in [`vercel.json`](vercel.json) that
+     keeps Google's change notifications switched on.
+6. Add all five to Vercel's environment variables and redeploy.
+7. In Casa: **Agenda → ⚙︎ → Connect Google Calendar**, sign in with the
+   account that owns the Casa calendar, and pick "Casa" from the list. The
+   first sync copies everything dated across, both ways.
+
+Changes made in Agenda reach Google straight away. Changes made in Google come
+back within seconds (Google notifies Casa's https address), and Agenda also
+checks whenever it's opened. Running locally over plain http there are no
+notifications, so changes from Google arrive when Agenda is opened.
+
 ## Development
 
 ```sh
@@ -130,10 +180,13 @@ src/app/groceries/     at home, shopping, settings, import   (green and kraft)
 src/app/api/ricettario/parse/   server route that reads recipes with Claude
 src/app/api/groceries/sort/     server route that sorts a pasted list with Claude
 src/app/api/agenda/parse/       server route that reads a quick-add line with Claude
+src/app/api/agenda/sync/        server route the phones call to sync with Google Calendar
+src/app/api/agenda/google/      connecting Google, picking the calendar, Google's notifications, the daily renewal
 src/lib/recipes/       data model, scaling, formatting, search, database calls
 src/lib/groceries/     data model, list views, database calls, live data hook
 src/lib/agenda/        data model, time zones, recurrence, occurrences, views, assigning
-src/lib/ai/            Claude prompt, link fetching and page extraction
+src/lib/ai/            Claude prompts, link fetching and page extraction
+src/lib/google/        Google Calendar API calls, token encryption, the sync itself
 supabase/migrations/   database schema and security rules
 logos/                 source logos; public/brand and public/icons are generated
 ```

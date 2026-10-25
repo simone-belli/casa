@@ -10,12 +10,19 @@ import type { Viewer } from "./views";
 /** How long to wait for a burst of live changes to settle before reloading. */
 const RELOAD_DELAY_MS = 250;
 
-/** Listeners told after every save, e.g. to push changes to Google Calendar. */
-const afterSaveListeners = new Set<() => void>();
+/** How long to wait for more changes before asking the server to sync with Google. */
+const SYNC_DELAY_MS = 800;
+let syncTimer: number | undefined;
 
-export function onAgendaSaved(listener: () => void): () => void {
-  afterSaveListeners.add(listener);
-  return () => afterSaveListeners.delete(listener);
+/**
+ * Asks the server to sync with Google Calendar: changes made here go to
+ * Google, and changes made in Google come back (through live updates).
+ */
+export function requestSync(delay = SYNC_DELAY_MS): void {
+  window.clearTimeout(syncTimer);
+  syncTimer = window.setTimeout(() => {
+    void fetch("/api/agenda/sync", { method: "POST" }).catch(() => {});
+  }, delay);
 }
 
 /**
@@ -49,9 +56,15 @@ export function useAgenda() {
 
   useEffect(() => {
     reload();
+    // A safety net in case a change notification from Google was missed.
+    requestSync(0);
     // Live updates pause while the phone is locked; catch up when it's back.
     const unwatch = watchAgenda(reload);
-    const onVisible = () => document.visibilityState === "visible" && reload();
+    const onVisible = () => {
+      if (document.visibilityState !== "visible") return;
+      reload();
+      requestSync(0);
+    };
     document.addEventListener("visibilitychange", onVisible);
     return () => {
       unwatch();
@@ -67,7 +80,7 @@ export function useAgenda() {
       saving.current++;
       try {
         await save();
-        for (const listener of afterSaveListeners) listener();
+        requestSync();
         return true;
       } catch (e) {
         const message = String((e as { message?: unknown } | null)?.message ?? "");
