@@ -1,5 +1,5 @@
 import { normalise } from "@/lib/recipes/search";
-import type { Aisle, Groceries, Item } from "./types";
+import { OTHER_PLACE, type Aisle, type Groceries, type Item } from "./types";
 
 export type Group = { key: string; title: string; items: Item[] };
 
@@ -10,7 +10,7 @@ const byPosition = <T extends { position: number; name: string }>(a: T, b: T) =>
 /**
  * The home view: items grouped by home place, in the places' order. An item
  * in several places appears under each; items with no place go under
- * "Elsewhere", and one-offs under "One-offs". Empty groups are left out.
+ * "Other", and one-offs under "One-offs". Empty groups are left out.
  */
 export function homeGroups(data: Groceries, onlyNeeded: boolean): Group[] {
   const items = data.items.filter((i) => !onlyNeeded || i.status === "need").sort(byName);
@@ -19,17 +19,18 @@ export function homeGroups(data: Groceries, onlyNeeded: boolean): Group[] {
     placesOf.set(item_id, [...(placesOf.get(item_id) ?? []), place_id]);
   }
 
+  const placeIds = new Set(data.places.map((p) => p.id));
+  const unplaced = (i: Item) => !placesOf.get(i.id)?.some((id) => placeIds.has(id));
   const groups: Group[] = [...data.places].sort(byPosition).map((place) => ({
     key: place.id,
     title: place.name,
-    items: items.filter((i) => !i.is_one_off && placesOf.get(i.id)?.includes(place.id)),
+    items: items.filter(
+      (i) => !i.is_one_off && (placesOf.get(i.id)?.includes(place.id) || (place.name === OTHER_PLACE && unplaced(i))),
+    ),
   }));
-  const placeIds = new Set(data.places.map((p) => p.id));
-  groups.push({
-    key: "elsewhere",
-    title: "Elsewhere",
-    items: items.filter((i) => !i.is_one_off && !placesOf.get(i.id)?.some((id) => placeIds.has(id))),
-  });
+  if (!data.places.some((p) => p.name === OTHER_PLACE)) {
+    groups.push({ key: "other", title: OTHER_PLACE, items: items.filter((i) => !i.is_one_off && unplaced(i)) });
+  }
   groups.push({ key: "one-offs", title: "One-offs", items: items.filter((i) => i.is_one_off) });
   return groups.filter((g) => g.items.length > 0);
 }

@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { SafeLink } from "@/components/safe-link";
 import { ui } from "@/components/ui";
-import { addAisle, addPlace, addStore, remove, rename, reorder } from "@/lib/groceries/db";
+import { addAisle, addStore, remove, rename, reorder } from "@/lib/groceries/db";
 import type { Groceries } from "@/lib/groceries/types";
 import { useDeviceSetting, useGroceries } from "@/lib/groceries/use-groceries";
 import { ErrorBanner, LoadState } from "../parts";
@@ -24,12 +24,11 @@ export function GroceriesSettings() {
 
   if (!data) return <LoadState failed={loadFailed} />;
 
-  const renameIn = (key: "places" | "stores" | "aisles", id: string, name: string) => (d: Groceries) => ({
+  const renameIn = (key: "stores" | "aisles", id: string, name: string) => (d: Groceries) => ({
     ...d,
     [key]: (d[key] as { id: string }[]).map((r) => (r.id === id ? { ...r, name } : r)),
   });
 
-  const places = [...data.places].sort(byPosition);
   const stores = [...data.stores].sort(byPosition);
 
   return (
@@ -45,27 +44,6 @@ export function GroceriesSettings() {
           </span>
           <input type="checkbox" checked={showWho} onChange={(e) => setShowWho(e.target.checked)} className="h-6 w-6 shrink-0 accent-brand" />
         </label>
-      </section>
-
-      <section className={`${ui.card} flex flex-col gap-3`}>
-        <div>
-          <h2 className="font-display text-xl">Home places</h2>
-          <p className="text-sm text-muted">Where things live at home, in the order you check them.</p>
-        </div>
-        <ListEditor
-          rows={places}
-          noun="place"
-          onAdd={(name) => void change(null, () => addPlace(name, data.places))}
-          onRename={(id, name) => void change(renameIn("places", id, name), () => rename("grocery_places", id, name))}
-          onReorder={(ids) => void change((d) => ({ ...d, places: inOrder(d.places, ids) }), () => reorder("grocery_places", ids))}
-          onDelete={(place) => {
-            if (!window.confirm(`Delete “${place.name}”? Its items stay, just without this place.`)) return;
-            void change(
-              (d) => ({ ...d, places: d.places.filter((p) => p.id !== place.id), itemPlaces: d.itemPlaces.filter((p) => p.place_id !== place.id) }),
-              () => remove("grocery_places", place.id),
-            );
-          }}
-        />
       </section>
 
       {stores.map((store) => (

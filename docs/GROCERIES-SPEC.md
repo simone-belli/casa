@@ -18,14 +18,14 @@ Same as the rest of Casa: two users, one shared list, live updates, mobile-first
 ## Concepts
 
 - **Item**: something we buy regularly, e.g. "Oat milk". It is either **have** or **need**.
-- **Home place**: where an item lives at home: Fridge, Freezer, Pantry, Cleaning, Bathroom… The list of places, and their order, is ours to edit. An item can be in **one or more** home places, or none.
+- **Home place**: where an item lives at home. The places are fixed, in this order: **Fruit, Fridge, Pantry, Bathroom, Clean & wash, Other**. An item can be in **one or more** home places, or none (it then shows under Other).
 - **Supermarket**: a shop we use (three regularly). Each one has an ordered list of **aisles** in walking order (Fruit & veg → Bakery → Meat → …), which we can edit and reorder.
 - **Filing**: for each supermarket, each item can be filed under **one** aisle of that shop.
 - **One-off**: an item we need just this once (e.g. "birthday candles"). It is deleted once bought.
 
 ## Home view (taking stock)
 
-- Shows every item, grouped by home place in the places' order. An item in several places appears under each of them. Items with no place go under **Elsewhere** at the end, and one-offs go under **One-offs**.
+- Shows every item, grouped by home place in the places' order. An item in several places appears under each of them. Items with no place go under **Other**, and one-offs go under **One-offs** at the end.
 - Tap an item to switch it between have and need. Items we need are clearly highlighted.
 - A filter: **All** / **Only what we need**.
 - Search box at the top, used by quick add (below).
@@ -55,10 +55,9 @@ The most frequent action, available in both views.
 
 When an item switches to need, the app records who did it. A toggle (**Show who added it**, off by default, saved on each phone) shows a small "Simone" or "Kat" next to the items we need, in both views.
 
-## Managing items, places and supermarkets
+## Managing items and supermarkets
 
 - Items: rename, change home places, add a note (e.g. "the Oatly one", "2 packs"), change the filing per supermarket, delete (with confirmation).
-- Home places: add, rename, move up and down, delete. Deleting a place doesn't delete its items, which just lose that place.
 - Supermarkets: add, rename, delete (with confirmation). Aisles: add, rename, move up and down, delete. Items filed under a deleted aisle go back to **Not sorted yet** for that shop.
 - **Adding a supermarket** can start empty or **copy another supermarket's aisles and filings**, which we then adjust.
 
@@ -67,14 +66,14 @@ When an item switches to need, the app records who did it. A toggle (**Show who 
 A one-time import screen (reachable again later from settings):
 
 1. Paste the Notes checklist into a text box, one item per line. Checklist symbols and empty lines are ignored.
-2. Claude reads the lines and suggests a home place for each item from our list of places. If the pasted text has headings (e.g. "Fridge"), they're used as hints. It may also suggest new places if ours don't cover something.
+2. Claude reads the lines and suggests home places for each item, from the six fixed places. If the pasted text has headings (e.g. "Fridge"), they're used as hints. Long lists are sorted in parts, cut at the headings.
 3. A review screen shows every item with its suggested places and a have/need switch (default **have**, since Notes' tick state may not survive the copy). We fix anything wrong and confirm. Nothing is saved before that.
 
 Supermarket filings aren't guessed. They're done while shopping, through **Not sorted yet**.
 
 ## Data model
 
-- `grocery_places`: id, name, position
+- `grocery_places`: id, name, position (the six fixed places; read-only for the app)
 - `grocery_items`: id, name, note, status (`have` / `need`), is_one_off, needed_by (user, set when switched to need), needed_at, created by / updated by, timestamps
 - `grocery_item_places`: item id, place id
 - `grocery_stores`: id, name, position

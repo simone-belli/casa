@@ -28,6 +28,7 @@ const data: Groceries = {
     { id: "pantry", name: "Pantry", position: 1 },
     { id: "fridge", name: "Fridge", position: 0 },
     { id: "bath", name: "Bathroom", position: 2 },
+    { id: "other", name: "Other", position: 3 },
   ],
   itemPlaces: [
     { item_id: "milk", place_id: "fridge" },
@@ -49,15 +50,20 @@ const data: Groceries = {
 const names = (items: Item[]) => items.map((i) => i.name);
 
 describe("homeGroups", () => {
-  it("groups by place in order, repeats items in several places, and adds Elsewhere and One-offs", () => {
+  it("groups by place in order, repeats items in several places, puts unplaced items under Other", () => {
     const groups = homeGroups(data, false);
     expect(groups.map((g) => [g.title, names(g.items)])).toEqual([
       ["Fridge", ["Eggs", "Milk"]],
       ["Pantry", ["Sponges"]],
       ["Bathroom", ["Sponges"]],
-      ["Elsewhere", ["Apples", "Bin bags"]],
+      ["Other", ["Apples", "Bin bags"]],
       ["One-offs", ["Birthday candles"]],
     ]);
+  });
+
+  it("still lists unplaced items under Other when there is no Other place", () => {
+    const groups = homeGroups({ ...data, places: data.places.filter((p) => p.name !== "Other") }, false);
+    expect(groups.find((g) => g.title === "Other")?.items.map((i) => i.name)).toEqual(["Apples", "Bin bags"]);
   });
 
   it("shows only what we need, dropping empty groups", () => {
@@ -66,7 +72,7 @@ describe("homeGroups", () => {
       ["Fridge", ["Milk"]],
       ["Pantry", ["Sponges"]],
       ["Bathroom", ["Sponges"]],
-      ["Elsewhere", ["Apples"]],
+      ["Other", ["Apples"]],
       ["One-offs", ["Birthday candles"]],
     ]);
   });

@@ -7,7 +7,6 @@ import { currentMember } from "@/lib/supabase/server";
 const requestSchema = z.object({
   /** The pasted list as is; blank lines mark where sections end. */
   text: z.string().trim().min(1).max(50_000),
-  places: z.array(z.string().trim().min(1).max(100)).max(100),
 });
 
 /** Most lines sorted in one go; longer lists are sorted in parts, in parallel. */
@@ -31,7 +30,7 @@ export async function POST(request: Request): Promise<NextResponse<SortResponse>
   }
 
   try {
-    const sorted = await Promise.all(parts.map((lines) => sortGroceries(lines, body.data.places)));
+    const sorted = await Promise.all(parts.map((lines) => sortGroceries(lines)));
     const seen = new Set<string>();
     const items = sorted
       .flatMap((s) => s.items)

@@ -41,7 +41,7 @@ export function ImportList() {
       const response = await fetch("/api/groceries/sort", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text, places: placeNames }),
+        body: JSON.stringify({ text }),
       });
       const body = (await response.json().catch(() => ({ error: "The server didn't answer. Please try again." }))) as SortResponse;
       if ("error" in body) setError(body.error);
@@ -99,19 +99,12 @@ export function ImportList() {
     );
   }
 
-  // Places Claude suggested that don't exist yet are offered too.
-  const allPlaces = [...placeNames];
-  for (const name of rows.flatMap((r) => r.places)) {
-    if (!allPlaces.some((p) => sameName(p, name))) allPlaces.push(name);
-  }
-  const newPlaces = allPlaces.slice(placeNames.length);
   const included = rows.filter((r) => r.include).length;
 
   return (
     <div className="flex flex-col gap-4 pt-4">
       <p className="text-muted">
         Check the names and places. Everything comes in as <strong>have</strong>; tap <strong>Need</strong> on what you need to buy.
-        {newPlaces.length > 0 && ` New places will be added: ${newPlaces.join(", ")}.`}
       </p>
 
       <ul className="flex flex-col gap-3">
@@ -148,7 +141,7 @@ export function ImportList() {
             </div>
             {row.include && (
               <div className="flex flex-wrap gap-1.5">
-                {allPlaces.map((place) => {
+                {placeNames.map((place) => {
                   const on = row.places.some((p) => sameName(p, place));
                   return (
                     <button

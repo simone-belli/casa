@@ -13,6 +13,11 @@ export type Item = {
   updated_at: string;
 };
 
+/** The fixed home places, in order (set up by migration 0003). */
+export const HOME_PLACES = ["Fruit", "Fridge", "Pantry", "Bathroom", "Clean & wash", "Other"] as const;
+/** Where items without a home place are listed. */
+export const OTHER_PLACE = "Other";
+
 export type Place = { id: string; name: string; position: number };
 export type Store = { id: string; name: string; position: number };
 export type Aisle = { id: string; store_id: string; name: string; position: number };

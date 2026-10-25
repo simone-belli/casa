@@ -104,17 +104,11 @@ export async function fileItem(itemId: string, storeId: string, aisleId: string 
   check(error);
 }
 
-// --- Places, supermarkets and aisles ----------------------------------------
+// --- Supermarkets and aisles (home places are fixed) ------------------------
 
-type Listed = "grocery_places" | "grocery_stores" | "grocery_aisles";
+type Listed = "grocery_stores" | "grocery_aisles";
 
 const nextPosition = (rows: { position: number }[]) => rows.reduce((max, r) => Math.max(max, r.position + 1), 0);
-
-export async function addPlace(name: string, places: Place[]): Promise<string> {
-  const id = uid();
-  check((await supabaseBrowser().from("grocery_places").insert({ id, name: name.trim(), position: nextPosition(places) })).error);
-  return id;
-}
 
 export async function addAisle(storeId: string, name: string, aisles: Aisle[]): Promise<void> {
   const position = nextPosition(aisles.filter((a) => a.store_id === storeId));
@@ -167,23 +161,13 @@ export async function addStore(name: string, data: Groceries, copyFrom?: string)
 export type ImportRow = { name: string; places: string[]; status: ItemStatus };
 
 /**
- * Saves reviewed import rows: creates any new places (by name), then the
- * items and their places. Names that already exist are skipped. Returns how
- * many items were added.
+ * Saves reviewed import rows: the items and their home places (by name;
+ * unknown names are ignored). Names that already exist are skipped. Returns
+ * how many items were added.
  */
 export async function importItems(rows: ImportRow[], data: Groceries): Promise<number> {
   const db = supabaseBrowser();
   const placeIds = new Map(data.places.map((p) => [p.name.trim().toLowerCase(), p.id]));
-  const newPlaces: { id: string; name: string; position: number }[] = [];
-  let position = nextPosition(data.places);
-  for (const name of rows.flatMap((r) => r.places)) {
-    const key = name.trim().toLowerCase();
-    if (!key || placeIds.has(key)) continue;
-    const id = uid();
-    placeIds.set(key, id);
-    newPlaces.push({ id, name: name.trim(), position: position++ });
-  }
-  if (newPlaces.length > 0) check((await db.from("grocery_places").insert(newPlaces)).error);
 
   const taken = new Set(data.items.map((i) => i.name.trim().toLowerCase()));
   const items: { id: string; name: string; status: ItemStatus }[] = [];

@@ -3,6 +3,7 @@ import "server-only";
 import Anthropic from "@anthropic-ai/sdk";
 import { betaZodOutputFormat } from "@anthropic-ai/sdk/helpers/beta/zod";
 import { z } from "zod";
+import { HOME_PLACES } from "@/lib/groceries/types";
 
 const MODEL = "claude-sonnet-5-5";
 
@@ -10,8 +11,7 @@ const sortedSchema = z.object({
   items: z.array(
     z.object({
       name: z.string(),
-      /** Home place names: existing ones, or a new one when nothing fits. */
-      places: z.array(z.string()),
+      places: z.array(z.enum(HOME_PLACES)),
     }),
   ),
 });
@@ -21,18 +21,23 @@ const SYSTEM_PROMPT = `You help Simone and Kat move their household shopping lis
 
 For each line that is something you buy, return one item:
 - "name": the item as written, tidied up: fix obvious typos, start with a capital letter, drop checkbox symbols and quantities in brackets. Keep the language it was written in (often Italian or English); do not translate.
-- "places": the home places where it is kept, chosen from the existing places you are given, using their exact names. Usually one; give two or more only when it really lives in several (for example sponges in both "Cleaning" and "Bathroom"). Use an empty list if you really can't tell.
+- "places": where it is kept at home. There are exactly six places:
+  - "Fruit": fresh fruit and vegetables
+  - "Fridge": anything kept in the fridge or freezer
+  - "Pantry": dry and packaged food, tins, drinks, spices, baking
+  - "Bathroom": toiletries, personal care and medicines
+  - "Clean & wash": cleaning products, laundry and household supplies such as foil, bin bags and paper towel
+  - "Other": anything that fits none of the above
+  Usually one place; give two only when it really lives in both (for example hand soap in "Bathroom" and "Clean & wash").
 
 Lines that are headings rather than items (for example "Fridge", "FRIGO", "Cleaning stuff:") are not items: leave them out, but use them as a strong hint for the place of the lines that follow.
-
-If several items clearly belong to a place that doesn't exist yet (for example "Baby" or "Pets"), you may use a new short place name for them, used consistently. Prefer the existing places.
 
 Merge exact duplicates. Keep the original order otherwise.`;
 
 export class SortError extends Error {}
 
 /** Sorts one part of a pasted list (keep parts to a few dozen lines). */
-export async function sortGroceries(lines: string[], places: string[]): Promise<SortedGroceries> {
+export async function sortGroceries(lines: string[]): Promise<SortedGroceries> {
   const client = new Anthropic();
   const response = await client.beta.messages
     .parse({
@@ -45,7 +50,7 @@ export async function sortGroceries(lines: string[], places: string[]): Promise<
       messages: [
         {
           role: "user",
-          content: `Existing home places: ${places.length > 0 ? places.map((p) => `"${p}"`).join(", ") : "(none yet)"}\n\nThe pasted list:\n<list>\n${lines.join("\n")}\n</list>`,
+          content: `The pasted list:\n<list>\n${lines.join("\n")}\n</list>`,
         },
       ],
     })
