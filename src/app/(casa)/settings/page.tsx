@@ -8,7 +8,7 @@ export const metadata: Metadata = { title: "Settings" };
 export default function SettingsPage() {
   return (
     <>
-      <SectionHeader logo="/brand/casa.svg" title="Settings" back={{ href: "/", label: "Back to Casa" }} />
+      <SectionHeader logo={{ src: "/brand/casa.svg", href: "/", label: "Casa home" }} title="Settings" back={{ href: "/", label: "Back to Casa" }} />
       <main className={`${ui.page} pt-6`}>
         <SettingsForm />
       </main>

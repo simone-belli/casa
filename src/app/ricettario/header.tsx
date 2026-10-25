@@ -12,7 +12,8 @@ export function RicettarioHeader({
 }) {
   return (
     <SectionHeader
-      logo="/brand/ricettario.svg"
+      logo={{ src: "/brand/ricettario.svg", href: "/ricettario", label: "Ricettario home" }}
+      casaLink
       title={title}
       back={back}
       action={action}
