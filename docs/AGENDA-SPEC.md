@@ -1,6 +1,6 @@
-# Agenda — Spec v0.1
+# Agenda — Spec v0.2
 
-_v0.1 is the first version. It replaces the Agenda notes captured in [CASA-SPEC.md](CASA-SPEC.md), and moves calendar sync from Apple Calendar to Google Calendar._
+_v0.2 resolves the open questions from v0.1: where assigned undated tasks go, missed occurrences of recurring tasks, overdue tasks, removing someone from an item, and Google sync now that Casa is deployed on Vercel over HTTPS. v0.1 replaced the Agenda notes captured in [CASA-SPEC.md](CASA-SPEC.md) and moved calendar sync from Apple Calendar to Google Calendar._
 
 ## Purpose
 
@@ -16,6 +16,8 @@ Same as the rest of Casa: two users, shared data, live updates, mobile-first, in
   - **Event**: something that happens at a time. It always has a date, either all-day or with a start and end time. It can be recurring.
   - **Task**: something to get done. Its date is optional. A dated task can be all-day or have a time, and can be recurring. A task can be open or done.
 - **Recurring task**: a dated task that repeats, e.g. "Take the bins out, every Tuesday". Each occurrence is ticked off on its own, and ticking one doesn't affect the next. A task needs a date to be recurring.
+  - **Keep missed occurrences**: an option on each recurring task, **off** by default. When it's off, an occurrence that passes without being ticked off is simply skipped, and only the next one is shown. When it's on, missed occurrences stay listed as overdue until they're ticked off.
+- **Overdue**: an open task whose date (or, for a timed task, its end or start time) has passed. One-off tasks are always kept as overdue until they're done or moved to a new date. Events are never overdue.
 - **Assignee**: who an item is for. It can be **unassigned**, **Simone**, **Kat** or **both**. Events and tasks are assigned the same way.
 - **Proposal**: an assignment that's waiting for the other person's answer (see below).
 - **Casa calendar**: the one shared Google Calendar that Agenda syncs with.
@@ -28,7 +30,8 @@ Same as the rest of Casa: two users, shared data, live updates, mobile-first, in
   - **Decline**: the item goes back to the person who proposed it, assigned to them alone. They can see it was declined and can reassign it, propose again or delete it.
 - An unassigned item can be picked up by either of us: assigning yourself needs no answer.
 - A proposed event is still on the calendar while it waits for an answer. Only the assignment is pending.
-- Changing an assignment works the same way: anything that adds the other person needs their answer, and anything that only involves you doesn't.
+- Changing an assignment works the same way: anything that adds the other person needs their answer. Everything else takes effect straight away, including removing the other person (e.g. changing a task from Kat to unassigned, or from Kat to Simone).
+- While a proposal is waiting, the item keeps its previous assignment.
 
 ## Task lifecycle
 
@@ -39,6 +42,7 @@ Same as the rest of Casa: two users, shared data, live updates, mobile-first, in
 ### Calendar
 
 - Every dated item, events and tasks, in a day-by-day list starting from today. A month grid gives an overview and jumps to a day.
+- An **Overdue** group at the top lists overdue tasks (see Concepts), until they're ticked off or moved to a new date.
 - Each item shows its time, title and assignee. Tasks have a tick box, and proposed items are marked as such.
 - Filter: **Everyone** / **Mine** (assigned to me or to both of us).
 - Items created directly in Google Calendar appear here too.
@@ -48,16 +52,16 @@ Same as the rest of Casa: two users, shared data, live updates, mobile-first, in
 Every task, dated or not, in sections from top to bottom:
 
 1. **Waiting for your answer**: proposals made to me.
-2. **Undecided**: tasks that are unassigned, undated or both.
-3. **Mine**, **Kat's** / **Simone's**, **Both of us**: open tasks by assignee, with dated ones in date order first, then undated ones.
+2. **Undecided**: open tasks that are unassigned, dated or not.
+3. **Mine**, **Kat's** / **Simone's**, **Both of us**: open assigned tasks by assignee, with dated ones in date order first, then undated ones.
 4. **Done**: collapsed, most recent first.
 
-Proposals I've made that are still waiting show a "waiting for Kat" (or "waiting for Simone") label where they sit.
+Proposals I've made that are still waiting show a "waiting for Kat" (or "waiting for Simone") label where they sit (by the item's current assignment). Overdue tasks show an "overdue" label. A recurring task shows its next open occurrence, plus any missed ones if it keeps missed occurrences.
 
 ## Adding and editing
 
 - **Quick add**, from both views: type or dictate a line like "Marco's birthday party Saturday 7pm" or "book boiler service". Claude fills in the type, title, date, time and assignee if they're mentioned. The filled-in form is shown for checking before anything is saved. Anything not mentioned stays empty: a task with no date or assignee is fine.
-- **Form**: type (event / task), title, note, all-day or start and end time (end optional for tasks), recurrence (needs a date), assignee, reminder.
+- **Form**: type (event / task), title, note, all-day or start and end time (end optional for tasks), recurrence (needs a date), keep missed occurrences (recurring tasks only), assignee, reminder.
 - **Editing a recurring item** asks **This one** or **All of them**.
 - Deleting asks for confirmation. Deleting a synced item also deletes it from Google Calendar.
 
@@ -70,7 +74,7 @@ Proposals I've made that are still waiting show a "waiting for Kat" (or "waiting
   - The description holds the note and an "Assigned: Kat" (or "Simone", "Both", "Unassigned", "Proposed to Kat") line.
   - Agenda's own item ID is stored in the event's hidden properties, so the two stay matched even if the title changes.
 - **Google → Agenda.** New events on the Casa calendar come in as events assigned to both of us. Edits (title, time, recurrence, description) and deletions made in Google come back into Agenda. Agenda strips the "☐"/"☑" prefix and its own "Assigned:" line when reading, so they don't pile up.
-- **Timing: instant in both directions.** Changes made in Agenda are written to Google as soon as they're saved. For changes made in Google, Agenda subscribes to Google's change notifications for the Casa calendar. Google calls Casa's public address whenever the calendar changes, and Agenda fetches just what changed. The subscription expires after a while, so the server renews it before it does. As a safety net, Agenda also checks for changes whenever someone opens it, in case a notification was missed.
+- **Timing: instant in both directions.** Changes made in Agenda are written to Google as soon as they're saved. For changes made in Google, Agenda subscribes to Google's change notifications for the Casa calendar. Google calls Casa's public HTTPS address on Vercel whenever the calendar changes, and Agenda fetches just what changed. The subscription expires after a while (about a week), so a daily scheduled job on Vercel renews it before it does. As a safety net, Agenda also checks for changes whenever someone opens it, in case a notification was missed.
 - **Conflicts.** If the same item is changed on both sides at almost the same moment, the most recent change wins.
 - **Recurring items** (events and tasks) use Google's recurrence rules, so they behave the same on both sides. A single changed or deleted occurrence of a series is kept as an exception, as Google does. Ticking off one occurrence of a recurring task changes only that occurrence in Google ("☑").
 
@@ -78,17 +82,17 @@ Proposals I've made that are still waiting show a "waiting for Kat" (or "waiting
 
 - Any dated item can have a reminder: at the time, or a chosen number of minutes, hours or days before.
 - In v0 reminders are delivered by Google Calendar. Agenda sets them on the synced event, and each of us gets the notification from our calendar app.
-- Undated tasks can't have a reminder in v0. Agenda's own notifications (needed for reminders on undated tasks, and for proposals) require Casa to be deployed over HTTPS. They're planned for after deployment.
+- Undated tasks can't have a reminder in v0. Agenda's own notifications (needed for reminders on undated tasks, and for proposals) are the next step after v0. Casa is now served over HTTPS, so nothing blocks them any more; they're just not in this build.
 
 ## Nudge about undecided tasks
 
 - An optional periodic nudge listing tasks that are still **undecided** or have proposals **waiting for an answer**.
-- In v0 it's a banner at the top of Agenda, shown on the chosen day until dismissed. Once Agenda can send its own notifications, it becomes one.
+- In v0 it's a banner at the top of Agenda, shown on the chosen day until dismissed. Once Agenda sends its own notifications, it becomes one.
 - Settings → Agenda (per person): nudge on/off and day of the week. Default: on, Sunday.
 
 ## Data model
 
-- `agenda_items`: id, kind (`event` / `task`), title, note, all_day, starts_at, ends_at, start_date / end_date (for all-day items), time_zone, recurrence (Google-style rule, dated items only), recurring_item_id and original_start (for a changed or ticked-off occurrence of a series), assignees (none, one or both user ids), task_status (`open` / `done`), done_at, done_by, reminder_minutes, created by / updated by, timestamps
+- `agenda_items`: id, kind (`event` / `task`), title, note, all_day, starts_at, ends_at, start_date / end_date (for all-day items), time_zone, recurrence (Google-style rule, dated items only), keep_missed (recurring tasks only, default false), recurring_item_id and original_start (for a changed or ticked-off occurrence of a series), assignees (none, one or both user ids), task_status (`open` / `done`), done_at, done_by, reminder_minutes, created by / updated by, timestamps
 - `agenda_proposals`: id, item id, proposed_by, proposed_assignees, status (`pending` / `accepted` / `declined`), answered_by, answered_at, created_at. An item has at most one pending proposal.
 - `agenda_google_links`: item id, Google event id, Google etag, last synced at
 - `agenda_sync_state` (server only, not readable by the phones): Google account, calendar id, encrypted refresh token, incremental sync token, last sync time, change-notification channel id and expiry
@@ -100,7 +104,7 @@ Proposals I've made that are still waiting show a "waiting for Kat" (or "waiting
 
 - Syncing with more than the one Casa calendar, or reading our personal or work calendars (e.g. to spot clashes)
 - Subtasks, checklists and attachments
-- Agenda's own push notifications (after deployment, see Reminders)
+- Agenda's own push notifications (the next step after v0, see Reminders)
 - Linking items to other sections (e.g. a dinner event to a recipe)
 
 ## Branding

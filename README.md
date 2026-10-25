@@ -14,8 +14,8 @@ home life. Specs live in [`docs/`](docs):
 | **Agenda** (calendar and tasks) | Specced; "coming soon" placeholder |
 | **Groceries** (shopping list) | v1: home and shopping views, quick add, one-offs, supermarkets and aisles, paste import; live sync |
 
-v0 runs on a computer at home and is opened from the phones over Wi-Fi; it
-isn't deployed anywhere yet.
+Casa is deployed on Vercel at `https://<your-app>.vercel.app` and works from
+anywhere over HTTPS. It can also be run on a computer for development.
 
 ## Stack
 
@@ -24,8 +24,6 @@ level security, Auth, Realtime, Storage) · Claude Sonnet 5.5 for reading
 recipes, called only from the server.
 
 ## One-time setup
-
-You need Node.js 22 or later on the computer that will run the app.
 
 ### 1. Supabase project
 
@@ -63,46 +61,57 @@ You need Node.js 22 or later on the computer that will run the app.
    invite Kat's address to the organisation (**Organization → Team**), or set
    up your own SMTP sender under **Authentication → Emails → SMTP settings**.
    Sessions last a long time, so you'll rarely need to sign in.
-8. **Authentication → URL Configuration**: set *Site URL* to the address the
-   phones use (see step 3 below, e.g. `http://simones-macbook.local:3000`) and
-   add the same address followed by `/**` to *Redirect URLs*.
+8. **Authentication → URL Configuration**: set *Site URL* to the Vercel
+   address (`https://<your-app>.vercel.app`) and add the same address followed
+   by `/**` to *Redirect URLs*. For local development, also add
+   `http://localhost:3000/**`.
 
 ### 2. Configuration
+
+The app reads these environment variables:
+
+- `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`: from
+  the project's **Connect** dialog (or Project Settings → API). The legacy
+  `anon` key also works, as `NEXT_PUBLIC_SUPABASE_ANON_KEY`.
+- `ANTHROPIC_API_KEY`: your Claude API key. It stays on the server; the
+  phones never see it.
+
+On Vercel, set them under **Project → Settings → Environment Variables**. For
+local development, copy them into `.env.local`:
 
 ```sh
 cp .env.example .env.local
 ```
 
-Fill in `.env.local`:
+### 3. Deploy on Vercel
 
-- `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`: from
-  the project's **Connect** dialog (or Project Settings → API). The legacy
-  `anon` key also works, as `NEXT_PUBLIC_SUPABASE_ANON_KEY`.
-- `ANTHROPIC_API_KEY`: your Claude API key. It stays on the computer; the
-  phones never see it.
+1. In Vercel, **Add New → Project** and import this repository. The defaults
+   for Next.js are right; no build settings need changing.
+2. Add the environment variables from step 2 and deploy.
+3. Every push to `main` deploys again.
 
-### 3. Run it and open it on the phones
+On the phones, open `https://<your-app>.vercel.app` in Safari, then
+**Share → Add to Home Screen** to get the Casa icon.
+
+### 4. Run it locally (optional)
+
+You need Node.js 22 or later.
 
 ```sh
 npm install
-npm run lan
+npm run dev
 ```
 
-`npm run lan` builds the app and serves it to the whole home network on port
-3000. On the phones (same Wi-Fi), open `http://<computer-name>.local:3000`.
-On a Mac, the computer name is in **System Settings → General → Sharing →
-Local hostname**. The `.local` name stays the same when the router hands out a
-new IP address. The `Network:` address printed in the terminal works too.
-
-Then **Share → Add to Home Screen** in Safari to get the Casa icon.
-
-Keep the computer awake while you're using the app. On a Mac, run
-`caffeinate -s npm run lan` instead.
+Then open `http://localhost:3000`. `npm run dev` also listens on the home
+network, so a phone on the same Wi-Fi can open
+`http://<computer-name>.local:3000` (sign-in redirects only work for
+addresses listed in step 1.8).
 
 ## Development
 
 ```sh
 npm run dev        # dev server with hot reload, also reachable on the LAN
+npm run lan        # production build served on the LAN (port 3000)
 npm test           # unit tests (scaling, formatting, search, link parsing, grocery views)
 npm run lint
 npm run typecheck
@@ -127,9 +136,6 @@ logos/                 source logos; public/brand and public/icons are generated
 
 ## Known limitations of v0
 
-- Served over plain `http` on the home network, so there's no service worker
-  (browsers only allow it over https). The home-screen app works, but needs
-  the computer to be on. Deploying to Vercel later fixes both.
 - Photos uploaded for a recipe that's then abandoned are removed when you
   leave the page, but not if you close the app while still on it.
 - If both of you edit the same recipe at once, the last save wins. The second

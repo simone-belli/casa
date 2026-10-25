@@ -10,7 +10,7 @@
 - Each section has its own name, logo and visual theme. Casa, Ricettario, Agenda and Groceries do not share a theme.
 - Home screen: the Casa logo and large buttons for **Ricettario**, **Agenda** and **Groceries** (Agenda marked "coming soon"), with a small link to Settings.
 - Settings (Casa level, shared): default family size, the household members, sign out.
-- v0 is not deployed: it runs on a computer at home and the phones open it over Wi-Fi. Moving to Vercel later needs no code changes.
+- Casa is deployed on Vercel and served over HTTPS, so it works from anywhere, not just on the home Wi-Fi. It can still be run on a computer for development.
 
 ## Section 1 — Ricettario (build now)
 
