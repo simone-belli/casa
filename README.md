@@ -5,13 +5,13 @@ home life. Specs live in [`docs/`](docs):
 
 - [`docs/CASA-SPEC.md`](docs/CASA-SPEC.md): the hub
 - [`docs/RICETTARIO-SPEC.md`](docs/RICETTARIO-SPEC.md): the recipe section
-- [`docs/AGENDA-SPEC.md`](docs/AGENDA-SPEC.md): the calendar and tasks section (specced, not built yet)
+- [`docs/AGENDA-SPEC.md`](docs/AGENDA-SPEC.md): the calendar and tasks section
 - [`docs/GROCERIES-SPEC.md`](docs/GROCERIES-SPEC.md): the shopping list section
 
 | Section | Status |
 |---|---|
 | **Ricettario** (recipes) | v0: add by typing/dictation, photo or link; scaling; editing; live sync |
-| **Agenda** (calendar and tasks) | Specced; "coming soon" placeholder |
+| **Agenda** (calendar and tasks) | In progress: calendar and tasks views, proposals, recurring items, weekly nudge, quick add with Claude; live sync. Google Calendar sync not built yet |
 | **Groceries** (shopping list) | v1: home and shopping views, quick add, one-offs, supermarkets and aisles, paste import; live sync |
 
 Casa is deployed on Vercel at `https://casa-pi-weld.vercel.app` and works from
@@ -21,7 +21,8 @@ anywhere over HTTPS. It can also be run on a computer for development.
 
 Next.js 16 (App Router, TypeScript, Tailwind) · Supabase (Postgres with row
 level security, Auth, Realtime, Storage) · Claude Sonnet 5.5 for reading
-recipes, called only from the server.
+recipes, sorting grocery lists and reading Agenda's quick-add lines, called only
+from the server.
 
 ## One-time setup
 
@@ -124,10 +125,11 @@ Layout:
 ```
 src/app/(casa)/        Casa home, sign-in, settings          (terracotta theme)
 src/app/ricettario/    recipe list, add, view, edit          (trattoria red)
-src/app/agenda/        coming-soon placeholder               (navy and amber)
+src/app/agenda/        calendar, tasks, add/edit, settings   (navy and amber)
 src/app/groceries/     at home, shopping, settings, import   (green and kraft)
 src/app/api/ricettario/parse/   server route that reads recipes with Claude
 src/app/api/groceries/sort/     server route that sorts a pasted list with Claude
+src/app/api/agenda/parse/       server route that reads a quick-add line with Claude
 src/lib/recipes/       data model, scaling, formatting, search, database calls
 src/lib/groceries/     data model, list views, database calls, live data hook
 src/lib/agenda/        data model, time zones, recurrence, occurrences, views, assigning

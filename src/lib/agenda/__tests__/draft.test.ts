@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { draftFromOccurrence, draftProblem, fieldsFromDraft, newDraft, seriesFieldsFromOccurrenceDraft, withKind } from "../draft";
+import { draftFromOccurrence, draftFromQuickAdd, draftProblem, fieldsFromDraft, newDraft, seriesFieldsFromOccurrenceDraft, withKind } from "../draft";
 import { seriesOccurrences, singleOccurrence } from "../occurrences";
 import { NO_REPEAT } from "../recurrence";
 import type { AgendaItem } from "../types";
@@ -92,6 +92,65 @@ describe("drafts", () => {
       starts_at: "2026-10-07T18:00:00Z",
       ends_at: "2026-10-07T19:00:00Z",
       recurrence: ["RRULE:FREQ=WEEKLY"],
+    });
+  });
+});
+
+describe("quick add", () => {
+  const now = new Date("2026-10-25T16:20:00Z");
+  const blank = newDraft("event", ROME, "2026-10-25", now);
+  const parsed = (fields: Partial<Parameters<typeof draftFromQuickAdd>[0]>): Parameters<typeof draftFromQuickAdd>[0] => ({
+    kind: "task",
+    title: "Something",
+    date: null,
+    end_date: null,
+    start_time: null,
+    end_time: null,
+    assignee: "unassigned",
+    repeat: { freq: "none", interval: 1, weekdays: [], monthly_by: "day", until: null },
+    reminder_minutes: null,
+    note: null,
+    ...fields,
+  });
+
+  it("fills a timed event with a default length", () => {
+    const draft = draftFromQuickAdd(parsed({ kind: "event", title: "Marco's birthday party", date: "2026-10-31", start_time: "19:00", assignee: "both" }), blank);
+    expect(draft).toMatchObject({ kind: "event", title: "Marco's birthday party", dated: true, allDay: false, date: "2026-10-31", startTime: "19:00", endTime: "20:00", assignee: "both" });
+    expect(draftProblem(draft)).toBeNull();
+  });
+
+  it("leaves an undated, unassigned task as it is", () => {
+    expect(draftFromQuickAdd(parsed({ title: "Book boiler service" }), blank)).toMatchObject({ kind: "task", dated: false, assignee: "unassigned", title: "Book boiler service" });
+  });
+
+  it("makes a dated task without a time all-day, and maps the speaker to me", () => {
+    expect(draftFromQuickAdd(parsed({ date: "2026-10-27", assignee: "speaker", reminder_minutes: 1440 }), blank)).toMatchObject({
+      dated: true,
+      allDay: true,
+      date: "2026-10-27",
+      assignee: "me",
+      reminder: 1440,
+    });
+  });
+
+  it("reads repeats and ignores malformed values", () => {
+    const draft = draftFromQuickAdd(
+      parsed({
+        title: "Bins",
+        date: "2026-10-27",
+        start_time: "25:00",
+        repeat: { freq: "weekly", interval: 0, weekdays: [2, 2, 9], monthly_by: "day", until: "soon" },
+        reminder_minutes: -5,
+      }),
+      blank,
+    );
+    expect(draft).toMatchObject({ allDay: true, reminder: null, repeat: { freq: "weekly", interval: 1, weekdays: [2], until: null } });
+  });
+
+  it("ends past midnight on the next day", () => {
+    expect(draftFromQuickAdd(parsed({ kind: "event", date: "2026-10-31", start_time: "22:00", end_time: "01:00" }), blank)).toMatchObject({
+      endDate: "2026-11-01",
+      endTime: "01:00",
     });
   });
 });

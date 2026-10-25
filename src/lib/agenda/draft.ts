@@ -1,9 +1,10 @@
 /** The add/edit form's state, and turning it into item fields. */
 
+import type { ParsedAgenda } from "@/lib/ai/parse-agenda";
 import { assigneeChoice, assigneeIds, type Assignee } from "./assign";
 import type { Occurrence } from "./occurrences";
 import { buildRecurrence, NO_REPEAT, repeatChoiceOf, type RepeatChoice } from "./recurrence";
-import { addDays, daysBetween, utcStamp, zonedParts, zonedToUtc } from "./time";
+import { addDays, daysBetween, isDate, utcStamp, zonedParts, zonedToUtc } from "./time";
 import type { AgendaItem, ItemKind } from "./types";
 
 export type Draft = {
@@ -188,4 +189,59 @@ export function seriesFieldsFromOccurrenceDraft(draft: Draft, occ: Occurrence, s
   const moved = { ...draft, date: start, endDate: addDays(start, length) };
   // The repeat rule was described against the occurrence; rebuild it on the series start.
   return fieldsFromDraft(moved, timeZone, series);
+}
+
+// --- Quick add ------------------------------------------------------------------
+
+const TIME_RE = /^([01]\d|2[0-3]):[0-5]\d$/;
+
+/**
+ * Fills a new item's form from what Claude read in a typed line. Anything
+ * missing or malformed is left as the blank form has it.
+ */
+export function draftFromQuickAdd(parsed: ParsedAgenda, blank: Draft): Draft {
+  const kind = parsed.kind === "event" ? "event" : "task";
+  const date = parsed.date && isDate(parsed.date) ? parsed.date : null;
+  const start = parsed.start_time && TIME_RE.test(parsed.start_time) ? parsed.start_time : null;
+  const end = start && parsed.end_time && TIME_RE.test(parsed.end_time) ? parsed.end_time : null;
+  const endDate = date && parsed.end_date && isDate(parsed.end_date) && parsed.end_date > date ? parsed.end_date : null;
+
+  const draft: Draft = {
+    ...withKind({ ...blank, kind }, kind),
+    title: parsed.title.trim() || blank.title,
+    note: parsed.note?.trim() ?? "",
+    assignee: ({ unassigned: "unassigned", speaker: "me", other: "other", both: "both" } as const)[parsed.assignee] ?? "unassigned",
+  };
+  if (!date) {
+    // An event without a day keeps the form's day; a task stays undated.
+    return kind === "event" ? draft : { ...draft, dated: false };
+  }
+
+  const timed = start !== null;
+  const dated: Draft = {
+    ...draft,
+    dated: true,
+    allDay: !timed,
+    date,
+    endDate: endDate ?? (timed && end && end < start ? addDays(date, 1) : date),
+    startTime: start ?? blank.startTime,
+    endTime: timed ? (end ?? (kind === "event" ? plusHour(start) : "")) : draft.endTime,
+    reminder:
+      parsed.reminder_minutes !== null && Number.isInteger(parsed.reminder_minutes) && parsed.reminder_minutes >= 0 && parsed.reminder_minutes <= 40320
+        ? parsed.reminder_minutes
+        : null,
+  };
+
+  const r = parsed.repeat;
+  if (r.freq === "none") return dated;
+  return {
+    ...dated,
+    repeat: {
+      freq: r.freq,
+      interval: Number.isInteger(r.interval) && r.interval >= 1 && r.interval <= 99 ? r.interval : 1,
+      weekdays: r.freq === "weekly" ? [...new Set(r.weekdays.filter((d) => Number.isInteger(d) && d >= 0 && d <= 6))] : [],
+      monthlyBy: r.monthly_by === "weekday" ? "weekday" : "day",
+      until: r.until && isDate(r.until) && r.until >= date ? r.until : null,
+    },
+  };
 }
