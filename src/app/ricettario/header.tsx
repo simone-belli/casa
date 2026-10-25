@@ -4,9 +4,11 @@ import { SectionHeader } from "@/components/section-header";
 export function RicettarioHeader({
   title = "Ricettario",
   back = { href: "/", label: "Back to Casa" },
+  hideTitle,
   action,
 }: {
   title?: string;
+  hideTitle?: boolean;
   back?: { href: string; label: string };
   action?: React.ReactNode;
 }) {
@@ -15,6 +17,7 @@ export function RicettarioHeader({
       logo={{ src: "/brand/ricettario.svg", href: "/ricettario", label: "Ricettario home" }}
       casaLink
       title={title}
+      hideTitle={hideTitle}
       back={back}
       action={action}
       band={<div className="checkered-band" aria-hidden />}
