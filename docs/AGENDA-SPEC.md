@@ -17,7 +17,7 @@ Same as the rest of Casa: two users, shared data, live updates, mobile-first, in
   - **Task**: something to get done. Its date is optional. A dated task can be all-day or have a time, and can be recurring. A task can be open or done.
 - **Recurring task**: a dated task that repeats, e.g. "Take the bins out, every Tuesday". Each occurrence is ticked off on its own, and ticking one doesn't affect the next. A task needs a date to be recurring.
   - **Keep missed occurrences**: an option on each recurring task, **off** by default. When it's off, an occurrence that passes without being ticked off is simply skipped, and only the next one is shown. When it's on, missed occurrences stay listed as overdue until they're ticked off.
-- **Overdue**: an open task whose date (or, for a timed task, its end or start time) has passed. One-off tasks are always kept as overdue until they're done or moved to a new date. Events are never overdue.
+- **Overdue**: an open task whose day has passed (a task due today stays under today, even after its time). One-off tasks are always kept as overdue until they're done or moved to a new date. Events are never overdue.
 - **Assignee**: who an item is for. It can be **unassigned**, **Simone**, **Kat** or **both**. Events and tasks are assigned the same way.
 - **Proposal**: an assignment that's waiting for the other person's answer (see below).
 - **Casa calendar**: the one shared Google Calendar that Agenda syncs with.

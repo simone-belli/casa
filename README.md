@@ -14,7 +14,7 @@ home life. Specs live in [`docs/`](docs):
 | **Agenda** (calendar and tasks) | Specced; "coming soon" placeholder |
 | **Groceries** (shopping list) | v1: home and shopping views, quick add, one-offs, supermarkets and aisles, paste import; live sync |
 
-Casa is deployed on Vercel at `https://<your-app>.vercel.app` and works from
+Casa is deployed on Vercel at `https://casa-pi-weld.vercel.app` and works from
 anywhere over HTTPS. It can also be run on a computer for development.
 
 ## Stack
@@ -35,7 +35,8 @@ recipes, called only from the server.
    migration: [`0002_groceries.sql`](supabase/migrations/0002_groceries.sql),
    [`0003_fixed_home_places.sql`](supabase/migrations/0003_fixed_home_places.sql),
    [`0004_freezer.sql`](supabase/migrations/0004_freezer.sql) and
-   [`0005_not_sold_here.sql`](supabase/migrations/0005_not_sold_here.sql).
+   [`0005_not_sold_here.sql`](supabase/migrations/0005_not_sold_here.sql), then
+   the Agenda migration [`0006_agenda.sql`](supabase/migrations/0006_agenda.sql).
 
    **Already set up?** Run, in order, whichever of these you haven't run yet.
    `0003` and `0005` are safe to run again; if Groceries says the home places
@@ -62,7 +63,7 @@ recipes, called only from the server.
    up your own SMTP sender under **Authentication → Emails → SMTP settings**.
    Sessions last a long time, so you'll rarely need to sign in.
 8. **Authentication → URL Configuration**: set *Site URL* to the Vercel
-   address (`https://<your-app>.vercel.app`) and add the same address followed
+   address (`https://casa-pi-weld.vercel.app`) and add the same address followed
    by `/**` to *Redirect URLs*. For local development, also add
    `http://localhost:3000/**`.
 
@@ -90,7 +91,7 @@ cp .env.example .env.local
 2. Add the environment variables from step 2 and deploy.
 3. Every push to `main` deploys again.
 
-On the phones, open `https://<your-app>.vercel.app` in Safari, then
+On the phones, open `https://casa-pi-weld.vercel.app` in Safari, then
 **Share → Add to Home Screen** to get the Casa icon.
 
 ### 4. Run it locally (optional)
@@ -112,7 +113,7 @@ addresses listed in step 1.8).
 ```sh
 npm run dev        # dev server with hot reload, also reachable on the LAN
 npm run lan        # production build served on the LAN (port 3000)
-npm test           # unit tests (scaling, formatting, search, link parsing, grocery views)
+npm test           # unit tests (scaling, formatting, search, link parsing, grocery views, agenda)
 npm run lint
 npm run typecheck
 npm run icons      # regenerate app icons after changing a logo in logos/
@@ -129,6 +130,7 @@ src/app/api/ricettario/parse/   server route that reads recipes with Claude
 src/app/api/groceries/sort/     server route that sorts a pasted list with Claude
 src/lib/recipes/       data model, scaling, formatting, search, database calls
 src/lib/groceries/     data model, list views, database calls, live data hook
+src/lib/agenda/        data model, time zones, recurrence, occurrences, views, assigning
 src/lib/ai/            Claude prompt, link fetching and page extraction
 supabase/migrations/   database schema and security rules
 logos/                 source logos; public/brand and public/icons are generated
