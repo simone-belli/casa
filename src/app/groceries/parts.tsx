@@ -1,6 +1,7 @@
 "use client";
 
 import { ui } from "@/components/ui";
+import { HOME_PLACES, type Place } from "@/lib/groceries/types";
 
 /** A save error, dismissed with a tap. */
 export function ErrorBanner({ error, onDismiss }: { error: string | null; onDismiss: () => void }) {
@@ -54,5 +55,17 @@ export function EditButton({ name, onClick }: { name: string; onClick: () => voi
     >
       ⋯
     </button>
+  );
+}
+
+/** Warns when the database's home places aren't the fixed ones yet (a migration hasn't been run). */
+export function PlacesCheck({ places }: { places: Place[] }) {
+  const names = [...places].sort((a, b) => a.position - b.position).map((p) => p.name);
+  if (names.join("|") === HOME_PLACES.join("|")) return null;
+  return (
+    <p className={ui.error}>
+      The home places aren&apos;t set up yet ({names.join(", ") || "none"} instead of {HOME_PLACES.join(", ")}). In Supabase →
+      SQL Editor, run <code>0003_fixed_home_places.sql</code> (safe to run again), then reload this page.
+    </p>
   );
 }

@@ -8,7 +8,7 @@ import { useGroceries } from "@/lib/groceries/use-groceries";
 import { pastedLines, sameName } from "@/lib/groceries/views";
 import { useSafeRouter } from "@/lib/navigation";
 import type { SortResponse } from "@/app/api/groceries/sort/route";
-import { LoadState } from "../parts";
+import { LoadState, PlacesCheck } from "../parts";
 
 type Row = ImportRow & { key: number; include: boolean; exists: boolean };
 
@@ -70,6 +70,7 @@ export function ImportList() {
   if (!rows) {
     return (
       <div className="flex flex-col gap-4 pt-4">
+        <PlacesCheck places={data.places} />
         <p className="text-muted">
           Paste the whole list from Notes, one item per line. Claude will sort each item into your home places, and you can check
           everything before it&apos;s saved.
@@ -103,6 +104,7 @@ export function ImportList() {
 
   return (
     <div className="flex flex-col gap-4 pt-4">
+      <PlacesCheck places={data.places} />
       <p className="text-muted">
         Check the names and places. Everything comes in as <strong>have</strong>; tap <strong>Need</strong> on what you need to buy.
       </p>

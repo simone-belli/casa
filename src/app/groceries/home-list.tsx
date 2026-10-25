@@ -9,7 +9,7 @@ import { useDeviceSetting, useGroceries } from "@/lib/groceries/use-groceries";
 import { homeGroups } from "@/lib/groceries/views";
 import { useHousehold } from "@/lib/household";
 import { ItemSheet } from "./item-sheet";
-import { EditButton, ErrorBanner, GroupTitle, LoadState, Tick } from "./parts";
+import { EditButton, ErrorBanner, GroupTitle, LoadState, PlacesCheck, Tick } from "./parts";
 import { QuickAdd } from "./quick-add";
 
 /** The home view: everything, by home place; tap to switch between have and need. */
@@ -43,6 +43,7 @@ export function HomeList() {
     <div className="flex flex-col gap-4 pt-4">
       <QuickAdd data={data} change={change} me={me} onCreated={setEditing} />
       <ErrorBanner error={error} onDismiss={clearError} />
+      <PlacesCheck places={data.places} />
 
       <div className="flex items-center justify-between gap-3">
         <p className="text-muted">
@@ -76,10 +77,13 @@ export function HomeList() {
         </div>
       )}
 
-      {groups.map((group) => (
+      {data.items.length > 0 && groups.map((group) => (
         <section key={group.key}>
           <GroupTitle count={group.items.filter((i) => i.status === "need").length || undefined}>{group.title}</GroupTitle>
-          <ul className="overflow-hidden rounded-2xl border border-line bg-surface shadow-sm">
+          {group.items.length === 0 && (
+            <p className="rounded-2xl border border-dashed border-line px-4 py-3 text-sm text-muted">Nothing here yet</p>
+          )}
+          {group.items.length > 0 && <ul className="overflow-hidden rounded-2xl border border-line bg-surface shadow-sm">
             {group.items.map((item) => {
               const needed = item.status === "need";
               const who = showWho && needed ? nameOf(item.needed_by) : null;
@@ -102,7 +106,7 @@ export function HomeList() {
                 </li>
               );
             })}
-          </ul>
+          </ul>}
         </section>
       ))}
 

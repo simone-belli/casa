@@ -1,8 +1,10 @@
 -- Casa: Groceries home places become a fixed list, in this order:
 -- Fruit, Fridge, Freezer, Pantry, Bathroom, Clean & wash, Other.
--- Run once in the Supabase SQL editor after 0002_groceries.sql. Items keep
--- their places where there's an obvious match; anything else goes to Other.
+-- Run in the Supabase SQL editor after 0002_groceries.sql; safe to run again.
+-- Items keep their places where there's an obvious match; anything else goes
+-- to Other.
 
+drop table if exists place_map;
 create temporary table place_map (old_id uuid, new_name text);
 
 insert into place_map (old_id, new_name)
@@ -49,6 +51,7 @@ end;
 drop table place_map;
 
 -- Places can still be read, but no longer added, renamed or deleted.
-drop policy "members manage grocery_places" on public.grocery_places;
+drop policy if exists "members manage grocery_places" on public.grocery_places;
+drop policy if exists "members read grocery_places" on public.grocery_places;
 create policy "members read grocery_places" on public.grocery_places
   for select to authenticated using (public.is_member());

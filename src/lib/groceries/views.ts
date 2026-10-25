@@ -10,7 +10,8 @@ const byPosition = <T extends { position: number; name: string }>(a: T, b: T) =>
 /**
  * The home view: items grouped by home place, in the places' order. An item
  * in several places appears under each; items with no place go under
- * "Other", and one-offs under "One-offs". Empty groups are left out.
+ * "Other", and one-offs under "One-offs". When showing everything, every
+ * place is listed even if empty; otherwise empty groups are left out.
  */
 export function homeGroups(data: Groceries, onlyNeeded: boolean): Group[] {
   const items = data.items.filter((i) => !onlyNeeded || i.status === "need").sort(byName);
@@ -32,7 +33,7 @@ export function homeGroups(data: Groceries, onlyNeeded: boolean): Group[] {
     groups.push({ key: "other", title: OTHER_PLACE, items: items.filter((i) => !i.is_one_off && unplaced(i)) });
   }
   groups.push({ key: "one-offs", title: "One-offs", items: items.filter((i) => i.is_one_off) });
-  return groups.filter((g) => g.items.length > 0);
+  return groups.filter((g) => g.items.length > 0 || (!onlyNeeded && g.key !== "one-offs" && g.key !== "other"));
 }
 
 export type ShopView = {

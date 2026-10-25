@@ -40,8 +40,9 @@ You need Node.js 22 or later on the computer that will run the app.
    and [`supabase/migrations/0004_freezer.sql`](supabase/migrations/0004_freezer.sql)
    for Groceries.
 
-   **Already set up?** Run, once each and in order, whichever of `0002`,
-   `0003` and `0004` you haven't run yet.
+   **Already set up?** Run, in order, whichever of `0002`, `0003` and `0004`
+   you haven't run yet. `0003` is safe to run again; if Groceries says the
+   home places aren't set up, run it.
 3. Still in the SQL Editor, add the two of you (lower-case emails):
 
    ```sql

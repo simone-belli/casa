@@ -51,8 +51,9 @@ const names = (items: Item[]) => items.map((i) => i.name);
 
 describe("homeGroups", () => {
   it("groups by place in order, repeats items in several places, puts unplaced items under Other", () => {
-    const groups = homeGroups(data, false);
+    const groups = homeGroups({ ...data, places: [...data.places, { id: "fruit", name: "Fruit", position: -1 }] }, false);
     expect(groups.map((g) => [g.title, names(g.items)])).toEqual([
+      ["Fruit", []],
       ["Fridge", ["Eggs", "Milk"]],
       ["Pantry", ["Sponges"]],
       ["Bathroom", ["Sponges"]],
