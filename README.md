@@ -136,7 +136,10 @@ both your calendar apps. Agenda works without it; set it up once:
    credentials → OAuth client ID**, type **Web application**. Under
    *Authorised redirect URIs* add
    `https://casa-pi-weld.vercel.app/api/agenda/google/callback` (and
-   `http://localhost:3000/api/agenda/google/callback` for local development).
+   `http://localhost:3000/api/agenda/google/callback` for local development:
+   Google only accepts plain `http` for `localhost`, so connect from the
+   computer's own browser at `http://localhost:3000`, not from a phone or a
+   `.local` address).
    Copy the client ID and secret into `GOOGLE_CLIENT_ID` and
    `GOOGLE_CLIENT_SECRET`.
 5. **The other secrets:**

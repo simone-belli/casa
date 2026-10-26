@@ -1,11 +1,13 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { exchangeCode, STATE_COOKIE } from "@/lib/google/calendar";
 import { connectAccount } from "@/lib/google/sync";
+import { publicOrigin } from "@/lib/origin";
 import { currentMember } from "@/lib/supabase/server";
 
 /** Where Google sends the browser back after the consent screen. */
 export async function GET(request: NextRequest) {
-  const { origin, searchParams } = request.nextUrl;
+  const { searchParams } = request.nextUrl;
+  const origin = publicOrigin(request);
   const settings = `${origin}/agenda/settings`;
   const fail = (message: string) => {
     const response = NextResponse.redirect(`${settings}?google_error=${encodeURIComponent(message)}`);

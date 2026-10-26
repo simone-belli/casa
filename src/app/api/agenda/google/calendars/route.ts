@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { z } from "zod";
 import { calendars, pickCalendar } from "@/lib/google/sync";
+import { publicOrigin } from "@/lib/origin";
 import { currentMember } from "@/lib/supabase/server";
 
 export const maxDuration = 300;
@@ -28,7 +29,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<{ ok: tru
   const body = pickSchema.safeParse(await request.json().catch(() => null));
   if (!body.success) return NextResponse.json({ error: "Pick a calendar." }, { status: 400 });
 
-  const { origin } = request.nextUrl;
+  const origin = publicOrigin(request);
   // Google only sends change notifications to an https address.
   const notify = origin.startsWith("https://") ? `${origin}/api/agenda/google/notify` : null;
   try {

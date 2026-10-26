@@ -1,11 +1,12 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { authUrl, missingConfig, STATE_COOKIE } from "@/lib/google/calendar";
 import { randomToken } from "@/lib/google/crypto";
+import { publicOrigin } from "@/lib/origin";
 import { currentMember } from "@/lib/supabase/server";
 
 /** Settings → Agenda → Connect Google Calendar: off to Google's consent screen. */
 export async function GET(request: NextRequest) {
-  const { origin } = request.nextUrl;
+  const origin = publicOrigin(request);
   if (!(await currentMember())) return NextResponse.redirect(`${origin}/login`);
   const missing = missingConfig();
   if (missing.length > 0) {
