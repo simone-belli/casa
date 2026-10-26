@@ -31,6 +31,17 @@ const parsedRecipeSchema = z.object({
 });
 export type ParsedRecipe = z.infer<typeof parsedRecipeSchema>;
 
+/** How to tick the labels; shared with labelRecipes. */
+export const LABELS_GUIDE = `Labels: tick every label that applies; any number, including none.
+- Meals the dish suits: "breakfast", "lunch", "dinner", "snack".
+- "quick": ready to eat in 25 minutes or less from start to finish, including cooking and any waiting.
+- "italian", "asian": the dish's cuisine (Asian covers Chinese, Japanese, Korean, Thai, Vietnamese, Indian and so on). Neither if it's another cuisine.
+- "slow-cooker": made in a slow cooker, or a long, gentle braise or stew that suits one.
+- "bbq": cooked on a barbecue or grill outdoors.
+- "starter", "side", "dessert": the course, when the dish is a starter or antipasto, a side dish (contorno), or a dessert. None of them for a main course.
+- "vegetarian": no meat or fish (eggs, dairy and honey are fine), including stocks and sauces like fish sauce.
+- "hot-season": suits hot weather (served cold or at room temperature, fresh and light, like salads or cold pasta). "cold-season": warming food for cold weather (soups, stews, roasts, baked pasta). Neither if it suits any time of year.`;
+
 const SYSTEM_PROMPT = `You turn recipes into a structured format for Ricettario, a family recipe app used by Simone and Kat while cooking. The input may be dictated or typed text, photos of handwritten or printed notebook pages, or content taken from a web page.
 
 Language: keep the recipe in the language it was written in (often Italian or English). Do not translate the title, ingredient names or steps. Write warnings in English.
@@ -52,15 +63,7 @@ Scaling, for every ingredient:
 
 Tips written on the page go into the step they belong to. Steps: one action per step, in order, without numbering.
 
-Labels: tick every label that applies; any number, including none.
-- Meals the dish suits: "breakfast", "lunch", "dinner", "snack".
-- "quick": ready to eat in 25 minutes or less from start to finish, including cooking and any waiting.
-- "italian", "asian": the dish's cuisine (Asian covers Chinese, Japanese, Korean, Thai, Vietnamese, Indian and so on). Neither if it's another cuisine.
-- "slow-cooker": made in a slow cooker, or a long, gentle braise or stew that suits one.
-- "bbq": cooked on a barbecue or grill outdoors.
-- "starter", "side", "dessert": the course, when the dish is a starter or antipasto, a side dish (contorno), or a dessert. None of them for a main course.
-- "vegetarian": no meat or fish (eggs, dairy and honey are fine), including stocks and sauces like fish sauce.
-- "hot-season": suits hot weather (served cold or at room temperature, fresh and light, like salads or cold pasta). "cold-season": warming food for cold weather (soups, stews, roasts, baked pasta). Neither if it suits any time of year.
+${LABELS_GUIDE}
 
 Tags: a few lowercase tags such as the main ingredient or occasion; don't repeat the labels as tags.
 

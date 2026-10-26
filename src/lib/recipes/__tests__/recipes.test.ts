@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { formatAmount } from "../format";
-import { mergeLabels, splitLabels } from "../labels";
+import { isSorted, mergeLabels, splitLabels, withSuggestedLabels } from "../labels";
 import { currentSeason, filterMenu } from "../menu";
 import { parseQuantity, quantityToInput } from "../quantity";
 import { portionsFor, scaleQuantity } from "../scaling";
@@ -158,6 +158,18 @@ describe("labels", () => {
     expect(mergeLabels(["dinner", "breakfast"], ["Pasta", "pasta", "lunch", " "])).toEqual(["breakfast", "dinner", "pasta"]);
     expect(mergeLabels([], ["dolci"])).toEqual(["dolci"]);
     expect(mergeLabels(["cold-season", "vegetarian", "italian", "snack"], ["Quick"])).toEqual(["snack", "italian", "vegetarian", "cold-season"]);
+  });
+});
+
+describe("suggested labels", () => {
+  it("counts a recipe as sorted once it has a menu, diet or season label", () => {
+    expect(isSorted(["dinner", "pasta"])).toBe(false);
+    expect(isSorted(["dinner", "cold-season"])).toBe(true);
+  });
+
+  it("keeps ticked meals and other tags, and replaces the menu labels", () => {
+    expect(withSuggestedLabels(["lunch", "quick", "pasta"], ["dinner", "italian", "vegetarian"])).toEqual(["lunch", "italian", "vegetarian", "pasta"]);
+    expect(withSuggestedLabels(["pasta"], ["dinner", "italian"])).toEqual(["dinner", "italian", "pasta"]);
   });
 });
 

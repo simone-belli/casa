@@ -13,6 +13,9 @@ export const MENU: { tag: Course; name: string; icon: string }[] = [
   { tag: "dessert", name: "Desserts", icon: "🍰" },
 ];
 
+/** Recipes per request when asking Claude to sort recipes into the menu. */
+export const RECIPES_PER_REQUEST = 8;
+
 /** Months (1–12) of the hot season when the household hasn't chosen. */
 export const DEFAULT_HOT_MONTHS = [5, 6, 7, 8, 9];
 

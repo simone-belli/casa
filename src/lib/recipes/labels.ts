@@ -52,3 +52,26 @@ export function mergeLabels(labels: readonly string[], others: string[]): string
   const rest = others.map((t) => t.trim().toLowerCase()).filter((t) => t && !isLabel(t));
   return [...ticked, ...new Set(rest)];
 }
+
+/** Labels the menu filters by (everything but the meals). */
+export const MENU_LABELS = [...COURSES, ...DIETS, ...SEASONS] as const;
+
+const isMeal = (label: Label) => (MEALS as readonly string[]).includes(label);
+
+/**
+ * Whether a recipe has been sorted into the menu. A main course that's good
+ * all year and has meat has none of these labels, so it counts as unsorted
+ * until someone ticks something for it.
+ */
+export const isSorted = (tags: string[]) => MENU_LABELS.some((label) => tags.includes(label));
+
+/**
+ * A recipe's tags with Claude's suggested menu labels in place of its own.
+ * Meals already ticked are kept; Claude's are used only when none are.
+ */
+export function withSuggestedLabels(tags: string[], suggested: Label[]): string[] {
+  const { labels, others } = splitLabels(tags);
+  const meals = labels.filter(isMeal);
+  const next = [...(meals.length > 0 ? meals : suggested.filter(isMeal)), ...suggested.filter((l) => !isMeal(l))];
+  return mergeLabels(next, others);
+}

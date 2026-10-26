@@ -32,6 +32,12 @@ export async function updateRecipe(id: string, draft: RecipeDraft): Promise<Reci
   return data as Recipe;
 }
 
+/** Replaces a recipe's tags, leaving the rest of it alone. */
+export async function updateTags(id: string, tags: string[]): Promise<void> {
+  const { error } = await supabaseBrowser().from("recipes").update({ tags }).eq("id", id);
+  if (error) throw error;
+}
+
 export async function deleteRecipe(recipe: Recipe): Promise<void> {
   const supabase = supabaseBrowser();
   const { error } = await supabase.from("recipes").delete().eq("id", recipe.id);

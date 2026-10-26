@@ -88,6 +88,11 @@ export function RecipeList() {
             {season && <span className="font-normal text-muted">({season === "hot-season" ? "☀️ hot" : "❄️ cold"})</span>}
           </label>
         </div>
+        {recipes && recipes.length > 0 && (
+          <SafeLink href="/ricettario/sort" className="self-start text-sm text-brand underline underline-offset-4">
+            ✨ Sort recipes into the menu with Claude
+          </SafeLink>
+        )}
       </section>
 
       <input

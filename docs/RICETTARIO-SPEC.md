@@ -86,6 +86,7 @@ Displayed amounts are rounded sensibly (e.g. whole grams above 10 g, halves and 
   - **Vegetarian**: only vegetarian recipes.
   - **In season**: hides recipes ticked only for the other season. The hot season's months are chosen in Casa's Settings (shared); the other months are the cold season.
 - A **text search** box that matches titles, ingredients, tags and notes, combined with the menu choices.
+- **Sort recipes into the menu with Claude** (a link under the menu): Claude reads the recipes that have no menu, diet or season label yet (or, on request, all of them again) and suggests their labels. The suggestions are shown for review, each label can be changed, and nothing is saved until the person confirms. Meals already ticked are kept; other tags are untouched.
 - Recipes are listed most recently updated first.
 
 ## Editing

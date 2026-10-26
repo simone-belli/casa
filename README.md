@@ -21,7 +21,7 @@ anywhere over HTTPS. It can also be run on a computer for development.
 
 Next.js 16 (App Router, TypeScript, Tailwind) · Supabase (Postgres with row
 level security, Auth, Realtime, Storage) · Claude Sonnet 5.5 for reading
-recipes, sorting grocery lists and reading Agenda's quick-add lines, called only
+recipes and sorting them into the menu, sorting grocery lists and reading Agenda's quick-add lines, called only
 from the server.
 
 ## One-time setup
@@ -188,6 +188,7 @@ src/app/ricettario/    recipe list, add, view, edit          (trattoria red)
 src/app/agenda/        calendar, tasks, add/edit, settings   (navy and amber)
 src/app/groceries/     at home, shopping, settings, import   (green and kraft)
 src/app/api/ricettario/parse/   server route that reads recipes with Claude
+src/app/api/ricettario/label/   server route that suggests recipes' menu labels with Claude
 src/app/api/groceries/sort/     server route that sorts a pasted list with Claude
 src/app/api/agenda/parse/       server route that reads a quick-add line with Claude
 src/app/api/agenda/sync/        server route the phones call to sync with Google Calendar
