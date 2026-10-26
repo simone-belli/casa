@@ -81,13 +81,18 @@ Displayed amounts are rounded sensibly (e.g. whole grams above 10 g, halves and 
 
 ## Finding recipes
 
-- **Menu** ("What shall we eat?") at the top of the recipe list: a button per menu category (Quick, Italian, Asian, Slow cook, BBQ, Starters, Side dishes, Desserts). Tapping one shows only those recipes; tapping it again shows all.
-- Two tick boxes under the menu, remembered on each phone:
+- **Ricettario's home is the menu** ("What shall we eat?"): a button per menu category (Quick, Italian, Asian, Slow cook, BBQ, Starters, Side dishes, Desserts), an **All recipes** button, and a search box. Tapping a button, or searching, opens the matching recipes on their own screen; its back arrow returns to the menu, and a recipe's back arrow returns to the list it was opened from.
+- Two tick boxes, on the menu and on the list, remembered on each phone:
   - **Vegetarian**: only vegetarian recipes.
-  - **In season**: hides recipes ticked only for the other season. The hot season's months are chosen in Casa's Settings (shared); the other months are the cold season.
-- A **text search** box that matches titles, ingredients, tags and notes, combined with the menu choices.
-- **Sort recipes into the menu with Claude** (a link under the menu): Claude reads the recipes that have no menu, diet or season label yet (or, on request, all of them again) and suggests their labels. The suggestions are shown for review, each label can be changed, and nothing is saved until the person confirms. Meals already ticked are kept; other tags are untouched.
-- Recipes are listed most recently updated first.
+  - **In season**: hides recipes ticked only for the other season.
+- The list has its own search box, combined with the category and the tick boxes; it matches titles, ingredients, tags and notes. Recipes are listed most recently updated first.
+
+## Ricettario settings
+
+Opened with ⚙︎ on the menu.
+
+- **Seasons** (shared): the months of the hot season; the others are the cold season.
+- **Sort recipes into the menu with Claude**: Claude reads the recipes that have no menu, diet or season label yet (or, on request, all of them again) and suggests their labels. The suggestions are shown for review, each label can be changed, and nothing is saved until the person confirms. Meals already ticked are kept; other tags are untouched.
 
 ## Editing
 

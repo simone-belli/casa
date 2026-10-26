@@ -12,14 +12,15 @@ import { tagName } from "@/lib/recipes/labels";
 import { BATCH_MULTIPLIERS, portionsFor, scaleQuantity } from "@/lib/recipes/scaling";
 import type { Recipe } from "@/lib/recipes/types";
 import { RicettarioHeader } from "../header";
+import { useLastList } from "../menu-filters";
 import { PhotoStrip } from "../photo-strip";
 import { timeAgo } from "../time";
 import { useRecipe } from "./use-recipe";
 
-const back = { href: "/ricettario", label: "Back to recipes" };
 
 export function RecipeView() {
   const { state } = useRecipe({ live: true });
+  const back = { href: useLastList(), label: "Back to recipes" };
 
   if (state.status !== "ready") {
     return (
@@ -33,10 +34,10 @@ export function RecipeView() {
       </>
     );
   }
-  return <RecipeDetails recipe={state.recipe} />;
+  return <RecipeDetails recipe={state.recipe} back={back} />;
 }
 
-function RecipeDetails({ recipe }: { recipe: Recipe }) {
+function RecipeDetails({ recipe, back }: { recipe: Recipe; back: { href: string; label: string } }) {
   const router = useSafeRouter();
   const { nameOf } = useHousehold();
   const family = useFamilyDefaults();
@@ -58,7 +59,7 @@ function RecipeDetails({ recipe }: { recipe: Recipe }) {
     setDeleting(true);
     try {
       await deleteRecipe(recipe);
-      router.replace("/ricettario");
+      router.replace(back.href);
     } catch {
       setDeleting(false);
       window.alert("Couldn't delete the recipe. Check your connection.");

@@ -184,7 +184,7 @@ Layout:
 
 ```
 src/app/(casa)/        Casa home, sign-in, settings, bug reports (terracotta theme)
-src/app/ricettario/    recipe list, add, view, edit          (trattoria red)
+src/app/ricettario/    menu, recipe lists, add, view, edit, settings (trattoria red)
 src/app/agenda/        calendar, tasks, add/edit, settings   (navy and amber)
 src/app/groceries/     at home, shopping, settings, import   (green and kraft)
 src/app/api/ricettario/parse/   server route that reads recipes with Claude

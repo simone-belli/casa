@@ -9,7 +9,7 @@ export const metadata: Metadata = { title: "Sort recipes" };
 export default function SortRecipesPage() {
   return (
     <>
-      <RicettarioHeader title="Sort recipes" back={{ href: "/ricettario", label: "Back to recipes" }} />
+      <RicettarioHeader title="Sort recipes" back={{ href: "/ricettario/settings", label: "Back to settings" }} />
       <main className={ui.page}>
         <FreshOnEachVisit>
           <SortRecipes />
