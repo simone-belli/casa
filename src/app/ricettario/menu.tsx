@@ -14,16 +14,17 @@ export function Menu() {
   const [query, setQuery] = useState("");
 
   return (
-    <div className="flex flex-col gap-4 pt-4">
+    <div className="flex flex-1 flex-col gap-3 pt-4">
       <h2 className="font-display text-2xl">What shall we eat?</h2>
-      <nav aria-label="Menu" className="grid grid-cols-4 gap-2">
+      {/* The tiles stretch to fill the screen, down to a comfortable minimum. */}
+      <nav aria-label="Menu" className="grid flex-1 auto-rows-fr grid-cols-2 gap-3">
         {MENU.map((item) => (
           <SafeLink
             key={item.tag}
             href={`/ricettario/recipes?c=${item.tag}`}
-            className="flex min-h-20 flex-col items-center justify-center gap-1 rounded-2xl border border-line bg-surface px-1 py-2 text-center text-xs leading-tight font-semibold text-ink shadow-sm active:scale-[0.97] active:bg-bg"
+            className="flex min-h-24 flex-col items-center justify-center gap-1.5 rounded-2xl border border-line bg-surface p-2 text-center text-lg font-semibold text-ink shadow-sm active:scale-[0.98] active:bg-bg"
           >
-            <span className="text-2xl" aria-hidden>
+            <span className="text-4xl" aria-hidden>
               {item.icon}
             </span>
             {item.name}
@@ -32,7 +33,7 @@ export function Menu() {
       </nav>
       <SafeLink
         href="/ricettario/recipes"
-        className="flex min-h-12 items-center justify-center gap-2 rounded-2xl border border-line bg-surface font-semibold text-ink shadow-sm active:bg-bg"
+        className="flex min-h-14 items-center justify-center gap-2 rounded-2xl border border-line bg-surface text-lg font-semibold text-ink shadow-sm active:bg-bg"
       >
         <span aria-hidden>📖</span> All recipes
       </SafeLink>

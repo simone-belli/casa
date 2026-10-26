@@ -5,7 +5,7 @@ import { Menu } from "./menu";
 
 export default function RicettarioPage() {
   return (
-    <>
+    <div className="flex min-h-dvh flex-col">
       <RicettarioHeader
         hideTitle
         action={
@@ -19,9 +19,9 @@ export default function RicettarioPage() {
           </>
         }
       />
-      <main className={ui.page}>
+      <main className={`${ui.page} flex w-full flex-1 flex-col`}>
         <Menu />
       </main>
-    </>
+    </div>
   );
 }
