@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import { SafeLink } from "@/components/safe-link";
 import { useSearchParams } from "next/navigation";
 import { useSafeRouter } from "@/lib/navigation";
 import { useState } from "react";
@@ -127,6 +128,13 @@ export function LoginForm() {
           </button>
         </form>
       )}
+
+      <p className="text-center text-sm text-muted">
+        A private app for Simone and Kat&apos;s household.{" "}
+        <SafeLink href="/privacy" className="underline">
+          Privacy
+        </SafeLink>
+      </p>
     </main>
   );
 }

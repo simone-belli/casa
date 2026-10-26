@@ -128,10 +128,14 @@ both your calendar apps. Agenda works without it; set it up once:
    **Google Calendar API**.
 3. **The consent screen.** **APIs & Services → OAuth consent screen**
    (*Google Auth Platform*): app name "Casa", user type **External**. Under
-   **Audience**, add the owner's Google account as a test user, then
-   **Publish app** (to *In production*). While it stays in *Testing*, Google
-   ends the connection every 7 days. Google shows an "unverified app" warning
-   when you connect: that's expected for a private app; choose *Continue*.
+   **Branding**: support and developer contact email, no logo (a logo needs
+   Google's brand verification), home page `https://casa-pi-weld.vercel.app/login`,
+   privacy policy `https://casa-pi-weld.vercel.app/privacy`, and authorised
+   domain `casa-pi-weld.vercel.app`. Under **Audience**, add the owner's Google
+   account as a test user, then **Publish app** (to *In production*). While it
+   stays in *Testing*, Google ends the connection every 7 days. Google shows an
+   "unverified app" warning when you connect: that's expected for a private
+   app; choose *Advanced → Go to Casa*.
 4. **The OAuth client.** **APIs & Services → Credentials → Create
    credentials → OAuth client ID**, type **Web application**. Under
    *Authorised redirect URIs* add
