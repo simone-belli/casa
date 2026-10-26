@@ -1,5 +1,5 @@
 import { normalise } from "@/lib/recipes/search";
-import { OTHER_PLACE, type Aisle, type Groceries, type Item } from "./types";
+import { OTHER_PLACE, type Aisle, type Groceries, type Item, type ItemAisle } from "./types";
 
 export type Group = { key: string; title: string; items: Item[] };
 
@@ -60,6 +60,18 @@ export function shopView(data: Groceries, storeId: string): ShopView {
       .map((aisle) => ({ aisle, items: needed.filter((i) => !i.is_one_off && aisleOf.get(i.id) === aisle.id) }))
       .filter((a) => a.items.length > 0),
   };
+}
+
+/**
+ * Filings that put every regular item under one aisle of the supermarket, or
+ * mark them all as not sold there (aisleId null). Unless `replace` is set,
+ * items already filed there (or marked not sold) are left out.
+ */
+export function fileAllRows(data: Groceries, storeId: string, aisleId: string | null, replace: boolean): ItemAisle[] {
+  const filed = new Set(data.itemAisles.filter((f) => f.store_id === storeId).map((f) => f.item_id));
+  return data.items
+    .filter((i) => !i.is_one_off && (replace || !filed.has(i.id)))
+    .map((i) => ({ item_id: i.id, store_id: storeId, aisle_id: aisleId }));
 }
 
 /** Same name, ignoring case, accents and surrounding spaces. */

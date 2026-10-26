@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { EMPTY_GROCERIES, type Groceries, type Item } from "../types";
-import { homeGroups, matchItems, pastedChunks, pastedLines, sameName, shopView } from "../views";
+import { fileAllRows, homeGroups, matchItems, pastedChunks, pastedLines, sameName, shopView } from "../views";
 
 const item = (id: string, name: string, status: Item["status"] = "have", is_one_off = false): Item => ({
   id,
@@ -101,6 +101,27 @@ describe("shopView", () => {
     const view = shopView(data, "lidl");
     expect(names(view.unsorted)).toEqual(["Apples", "Milk", "Sponges"]);
     expect(view.aisles).toEqual([]);
+  });
+});
+
+describe("fileAllRows", () => {
+  it("marks only unsorted regular items as not sold by default", () => {
+    expect(fileAllRows(data, "tesco", null, false)).toEqual([
+      { item_id: "eggs", store_id: "tesco", aisle_id: null },
+      { item_id: "sponge", store_id: "tesco", aisle_id: null },
+      { item_id: "bin", store_id: "tesco", aisle_id: null },
+    ]);
+  });
+
+  it("files every regular item under the aisle when replacing, leaving one-offs out", () => {
+    const rows = fileAllRows(data, "tesco", "dairy", true);
+    expect(rows.map((r) => r.item_id)).toEqual(["milk", "eggs", "sponge", "bin", "apples"]);
+    expect(rows.every((r) => r.aisle_id === "dairy" && r.store_id === "tesco")).toBe(true);
+  });
+
+  it("ignores filings at other supermarkets", () => {
+    const other = { ...data, itemAisles: [{ item_id: "eggs", store_id: "boots", aisle_id: null }] };
+    expect(fileAllRows(other, "tesco", null, false)).toHaveLength(5);
   });
 });
 

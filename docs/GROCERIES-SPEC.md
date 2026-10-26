@@ -61,6 +61,7 @@ When an item switches to need, the app records who did it. A toggle (**Show who 
 - Supermarkets: add, rename, delete (with confirmation). Aisles: add, rename, move up and down, delete. Items filed under a deleted aisle go back to **Not sorted yet** for that shop.
 - **Adding a supermarket** can start empty or **copy another supermarket's aisles and filings**, which we then adjust.
 - **Suggest aisles** (per supermarket): Claude files every item not yet sorted there under its likeliest aisle, using what it knows about that chain's layout. Items already filed are left alone, so it's safe to run again after corrections.
+- **File every item** (per supermarket): puts every regular item under one chosen aisle, or marks them all **Not sold here**, either only the items not sorted yet there or all of them (replacing their filing, after confirming). Meant for shops that sell only a few of our things (a pharmacy, a wine shop): mark everything not sold, then file the few it does sell. Items added later start unsorted there, so it can be run again for just those.
 
 ## Importing the current Notes list
 

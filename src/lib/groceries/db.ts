@@ -110,6 +110,18 @@ export async function fileItem(itemId: string, storeId: string, choice: string |
   check(error);
 }
 
+/**
+ * Saves many filings at once. Unless `replace` is set, items filed meanwhile
+ * (e.g. on the other phone) keep their filing.
+ */
+export async function fileItems(rows: ItemAisle[], replace: boolean): Promise<void> {
+  if (rows.length === 0) return;
+  const { error } = await supabaseBrowser()
+    .from("grocery_item_aisles")
+    .upsert(rows, { onConflict: "item_id,store_id", ignoreDuplicates: !replace });
+  check(error);
+}
+
 // --- Supermarkets and aisles (home places are fixed) ------------------------
 
 type Listed = "grocery_stores" | "grocery_aisles";
