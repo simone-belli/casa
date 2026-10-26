@@ -32,16 +32,13 @@ export default function CasaHome() {
         ))}
       </nav>
 
-      <div className="mt-6 flex justify-center">
+      <footer className="mt-auto flex items-center justify-between pt-10">
         <SafeLink
           href="/report-bug"
           className="rounded-full border border-line bg-surface px-3 py-1.5 text-sm text-muted shadow-sm active:bg-line"
         >
           🐞 Report a bug
         </SafeLink>
-      </div>
-
-      <footer className="mt-auto pt-10 text-center">
         <SafeLink href="/settings" className="text-muted underline-offset-4 active:underline">
           Settings
         </SafeLink>
