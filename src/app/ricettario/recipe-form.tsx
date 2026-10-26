@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Stepper } from "@/components/stepper";
 import { ui } from "@/components/ui";
-import { MEALS, type Meal, mergeMealTags, splitMealTags } from "@/lib/recipes/meals";
+import { COURSES, DIETS, type Label, LABEL_NAMES, MEALS, mergeLabels, SEASONS, splitLabels } from "@/lib/recipes/labels";
 import { parseQuantity, quantityToInput } from "@/lib/recipes/quantity";
 import {
   type Ingredient,
@@ -64,8 +64,8 @@ export function RecipeForm({ initial, initialPortions, warnings = [], banner, su
   const [kind, setKind] = useState(initial.kind);
   const [yieldText, setYieldText] = useState(initial.yield ?? "");
   const [portions, setPortions] = useState(initialPortions);
-  const [meals, setMeals] = useState<Meal[]>(() => splitMealTags(initial.tags).meals);
-  const [tags, setTags] = useState(() => splitMealTags(initial.tags).others.join(", "));
+  const [labels, setLabels] = useState<Label[]>(() => splitLabels(initial.tags).labels);
+  const [tags, setTags] = useState(() => splitLabels(initial.tags).others.join(", "));
   const [notes, setNotes] = useState(initial.notes ?? "");
   const [ingredients, setIngredients] = useState<IngredientRow[]>(() =>
     toRows(initial.ingredients, (i) => (initial.kind === "portion" && i.scaling !== "fixed" ? initialPortions : 1)),
@@ -99,7 +99,7 @@ export function RecipeForm({ initial, initialPortions, warnings = [], banner, su
       title: title.trim(),
       kind,
       yield: kind === "batch" ? yieldText.trim() || null : null,
-      tags: mergeMealTags(meals, tags.split(",")),
+      tags: mergeLabels(labels, tags.split(",")),
       notes: notes.trim() || null,
       ingredients: parsedIngredients,
       steps: steps.map((s) => s.text.trim()).filter(Boolean),
@@ -183,28 +183,16 @@ export function RecipeForm({ initial, initialPortions, warnings = [], banner, su
           </div>
         )}
 
-        <fieldset>
-          <legend className={ui.label}>Good for</legend>
-          <div className="grid grid-cols-2 gap-2">
-            {MEALS.map((meal) => {
-              const ticked = meals.includes(meal);
-              return (
-                <label
-                  key={meal}
-                  className={`flex min-h-11 items-center justify-center gap-2 rounded-xl border px-2 text-sm font-semibold capitalize ${ticked ? "border-brand bg-brand text-brand-ink" : "border-line bg-surface text-ink"}`}
-                >
-                  <input
-                    type="checkbox"
-                    checked={ticked}
-                    onChange={() => setMeals((m) => (ticked ? m.filter((x) => x !== meal) : [...m, meal]))}
-                    className="h-4 w-4 accent-white"
-                  />
-                  {meal}
-                </label>
-              );
-            })}
-          </div>
-        </fieldset>
+        <LabelGroup legend="Good for" options={MEALS} ticked={labels} onChange={setLabels} />
+        <LabelGroup legend="Menu" options={COURSES} ticked={labels} onChange={setLabels} />
+        <LabelGroup legend="Diet" options={DIETS} ticked={labels} onChange={setLabels} />
+        <LabelGroup
+          legend="Season"
+          hint="Leave both unticked if it's good all year."
+          options={SEASONS}
+          ticked={labels}
+          onChange={setLabels}
+        />
       </section>
 
       <section className={`${ui.card} flex flex-col gap-3`}>
@@ -327,5 +315,45 @@ export function RecipeForm({ initial, initialPortions, warnings = [], banner, su
         </button>
       </div>
     </form>
+  );
+}
+
+function LabelGroup({
+  legend,
+  hint,
+  options,
+  ticked,
+  onChange,
+}: {
+  legend: string;
+  hint?: string;
+  options: readonly Label[];
+  ticked: Label[];
+  onChange: (labels: Label[]) => void;
+}) {
+  return (
+    <fieldset>
+      <legend className={ui.label}>{legend}</legend>
+      <div className="grid grid-cols-2 gap-2">
+        {options.map((label) => {
+          const on = ticked.includes(label);
+          return (
+            <label
+              key={label}
+              className={`flex min-h-11 items-center justify-center gap-2 rounded-xl border px-2 text-sm font-semibold ${on ? "border-brand bg-brand text-brand-ink" : "border-line bg-surface text-ink"}`}
+            >
+              <input
+                type="checkbox"
+                checked={on}
+                onChange={() => onChange(on ? ticked.filter((x) => x !== label) : [...ticked, label])}
+                className="h-4 w-4 accent-white"
+              />
+              {LABEL_NAMES[label]}
+            </label>
+          );
+        })}
+      </div>
+      {hint && <p className="mt-1 text-xs text-muted">{hint}</p>}
+    </fieldset>
   );
 }

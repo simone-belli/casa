@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { DEFAULT_HOT_MONTHS } from "@/lib/recipes/menu";
 import { supabaseBrowser } from "@/lib/supabase/client";
 
 export type HouseholdSettings = { default_adults: number; default_children: number };
@@ -21,6 +22,33 @@ export async function loadSettings(): Promise<HouseholdSettings> {
 export async function saveSettings(settings: HouseholdSettings): Promise<void> {
   const { error } = await supabaseBrowser().from("household_settings").update(settings).eq("id", 1);
   if (error) throw error;
+}
+
+/**
+ * Months (1–12) of the hot season; the rest are the cold season. Loaded on
+ * their own so the other settings still work before migration 0009 is run.
+ */
+export async function loadHotMonths(): Promise<number[]> {
+  const { data, error } = await supabaseBrowser().from("household_settings").select("hot_months").eq("id", 1).single();
+  if (error) throw error;
+  return (data as { hot_months: number[] }).hot_months;
+}
+
+export async function saveHotMonths(hotMonths: number[]): Promise<void> {
+  const { error } = await supabaseBrowser()
+    .from("household_settings")
+    .update({ hot_months: [...hotMonths].sort((a, b) => a - b) })
+    .eq("id", 1);
+  if (error) throw error;
+}
+
+/** The household's hot months, or the default ones if they can't be loaded. */
+export function useHotMonths() {
+  const [months, setMonths] = useState<number[] | null>(null);
+  useEffect(() => {
+    loadHotMonths().then(setMonths, () => setMonths(DEFAULT_HOT_MONTHS));
+  }, []);
+  return months;
 }
 
 export async function loadMembers(): Promise<Member[]> {

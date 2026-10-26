@@ -4,7 +4,7 @@ import { useSafeRouter } from "@/lib/navigation";
 import { useEffect, useState } from "react";
 import { Stepper } from "@/components/stepper";
 import { ui } from "@/components/ui";
-import { type HouseholdSettings, loadSettings, saveSettings, useHousehold } from "@/lib/household";
+import { type HouseholdSettings, loadHotMonths, loadSettings, saveHotMonths, saveSettings, useHousehold } from "@/lib/household";
 import { portionsFor } from "@/lib/recipes/scaling";
 import { supabaseBrowser } from "@/lib/supabase/client";
 
@@ -60,6 +60,8 @@ export function SettingsForm() {
         {status === "error" && settings && <p className={ui.error}>Couldn&apos;t save. Check your connection.</p>}
       </section>
 
+      <Seasons />
+
       <section className={`${ui.card} flex flex-col gap-3`}>
         <h2 className="font-display text-xl">Household</h2>
         <ul className="text-ink">
@@ -75,5 +77,69 @@ export function SettingsForm() {
         </button>
       </section>
     </div>
+  );
+}
+
+const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+function Seasons() {
+  const [hotMonths, setHotMonths] = useState<number[] | null>(null);
+  const [status, setStatus] = useState<"idle" | "saving" | "saved" | "error" | "missing">("idle");
+
+  useEffect(() => {
+    loadHotMonths().then(setHotMonths, () => setStatus("missing"));
+  }, []);
+
+  async function toggle(month: number) {
+    if (!hotMonths) return;
+    const next = hotMonths.includes(month) ? hotMonths.filter((m) => m !== month) : [...hotMonths, month];
+    setHotMonths(next);
+    setStatus("saving");
+    try {
+      await saveHotMonths(next);
+      setStatus("saved");
+    } catch {
+      setStatus("error");
+    }
+  }
+
+  return (
+    <section className={`${ui.card} flex flex-col gap-4`}>
+      <div>
+        <h2 className="font-display text-xl">Seasons</h2>
+        <p className="text-sm text-muted">
+          Tick the months of the hot season; the others are the cold season. Ricettario&apos;s <em>In season</em> filter uses this. Shared
+          by both of you.
+        </p>
+      </div>
+      {hotMonths ? (
+        <>
+          <div className="grid grid-cols-4 gap-2">
+            {MONTHS.map((name, i) => {
+              const hot = hotMonths.includes(i + 1);
+              return (
+                <button
+                  key={name}
+                  type="button"
+                  aria-pressed={hot}
+                  onClick={() => toggle(i + 1)}
+                  className={`min-h-11 rounded-xl border text-sm font-semibold ${hot ? "border-brand bg-brand text-brand-ink" : "border-line bg-surface text-ink"}`}
+                >
+                  {name}
+                </button>
+              );
+            })}
+          </div>
+          <p className="text-sm text-muted">
+            ☀️ Hot: {hotMonths.length} {hotMonths.length === 1 ? "month" : "months"} · ❄️ Cold: {12 - hotMonths.length}
+            {status === "saving" && " · Saving…"}
+            {status === "saved" && " · Saved"}
+          </p>
+        </>
+      ) : (
+        <p className="text-muted">{status === "missing" ? "Seasons aren't set up yet (database migration 0009)." : "Loading…"}</p>
+      )}
+      {status === "error" && <p className={ui.error}>Couldn&apos;t save. Check your connection.</p>}
+    </section>
   );
 }

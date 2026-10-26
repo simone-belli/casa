@@ -42,7 +42,11 @@ After parsing, the user reviews and edits the structured recipe in a form before
 ## Recipe data model
 
 - Title, optional notes, optional tags
-- **Good for**: breakfast, lunch, dinner and/or snack (any number, including none or all of them), ticked in the form and stored as the tags `breakfast`, `lunch`, `dinner`, `snack`. The AI pre-ticks them when parsing; the user can change them in the review.
+- **Labels**, ticked in the form and stored as tags. The AI pre-ticks them when parsing; the user can change them in the review. Any number, including none:
+  - **Good for**: `breakfast`, `lunch`, `dinner`, `snack`
+  - **Menu**: `quick` (ready in 25 minutes or less), `italian`, `asian`, `slow-cooker`, `bbq`, `starter`, `side`, `dessert`
+  - **Diet**: `vegetarian`
+  - **Season**: `hot-season` (fresh, cool food), `cold-season` (warming food); neither means good all year
 - **Kind**: `portion` or `batch`
   - `portion` — ingredient quantities are stored **per adult portion**
   - `batch` — quantities are stored for **one batch**, with a yield description (e.g. "1 cake, 24 cm tin", "8 biscuits")
@@ -77,7 +81,11 @@ Displayed amounts are rounded sensibly (e.g. whole grams above 10 g, halves and 
 
 ## Finding recipes
 
-- v1: a **text search** box on the recipe list that matches titles, ingredients, tags and notes.
+- **Menu** ("What shall we eat?") at the top of the recipe list: a button per menu category (Quick, Italian, Asian, Slow cook, BBQ, Starters, Side dishes, Desserts). Tapping one shows only those recipes; tapping it again shows all.
+- Two tick boxes under the menu, remembered on each phone:
+  - **Vegetarian**: only vegetarian recipes.
+  - **In season**: hides recipes ticked only for the other season. The hot season's months are chosen in Casa's Settings (shared); the other months are the cold season.
+- A **text search** box that matches titles, ingredients, tags and notes, combined with the menu choices.
 - Recipes are listed most recently updated first.
 
 ## Editing
@@ -92,7 +100,7 @@ Displayed amounts are rounded sensibly (e.g. whole grams above 10 g, halves and 
 - Recipe version history
 - Native iOS/Android apps
 - In-app audio recording / server-side speech-to-text
-- Fixed categories and favourites (tags exist in the data model, but there is no filtering UI beyond search yet)
+- Favourites
 - Offline mode
 
 ## Branding

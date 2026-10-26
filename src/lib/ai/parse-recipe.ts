@@ -3,7 +3,7 @@ import "server-only";
 import Anthropic from "@anthropic-ai/sdk";
 import { betaZodOutputFormat } from "@anthropic-ai/sdk/helpers/beta/zod";
 import { z } from "zod";
-import { MEALS } from "@/lib/recipes/meals";
+import { LABELS } from "@/lib/recipes/labels";
 import { SCALING_MODES, RECIPE_KINDS } from "@/lib/recipes/types";
 
 const MODEL = "claude-sonnet-5-5";
@@ -12,8 +12,8 @@ const MODEL = "claude-sonnet-5-5";
 const parsedRecipeSchema = z.object({
   title: z.string(),
   tags: z.array(z.string()),
-  /** Meals the dish suits; stored as tags. */
-  meals: z.array(z.enum(MEALS)),
+  /** Ticked labels (meals, menu categories, diet, season); stored as tags. */
+  labels: z.array(z.enum(LABELS)),
   kind: z.enum(RECIPE_KINDS),
   yield: z.string().nullable(),
   ingredients: z.array(
@@ -50,7 +50,19 @@ Scaling, for every ingredient:
 - "rounded": scales but must be a whole number when cooking (eggs, whole vegetables, cans).
 - "fixed": does not change with the number of people (a pinch of salt, a bay leaf, a baking tin, oil for greasing).
 
-Tips written on the page go into the step they belong to. Meals: tick the meals the dish suits ("breakfast", "lunch", "dinner", "snack"); any number, including none or all of them. Tags: a few lowercase tags such as the course, main ingredient or occasion; don't repeat the meals as tags. Steps: one action per step, in order, without numbering.
+Tips written on the page go into the step they belong to. Steps: one action per step, in order, without numbering.
+
+Labels: tick every label that applies; any number, including none.
+- Meals the dish suits: "breakfast", "lunch", "dinner", "snack".
+- "quick": ready to eat in 25 minutes or less from start to finish, including cooking and any waiting.
+- "italian", "asian": the dish's cuisine (Asian covers Chinese, Japanese, Korean, Thai, Vietnamese, Indian and so on). Neither if it's another cuisine.
+- "slow-cooker": made in a slow cooker, or a long, gentle braise or stew that suits one.
+- "bbq": cooked on a barbecue or grill outdoors.
+- "starter", "side", "dessert": the course, when the dish is a starter or antipasto, a side dish (contorno), or a dessert. None of them for a main course.
+- "vegetarian": no meat or fish (eggs, dairy and honey are fine), including stocks and sauces like fish sauce.
+- "hot-season": suits hot weather (served cold or at room temperature, fresh and light, like salads or cold pasta). "cold-season": warming food for cold weather (soups, stews, roasts, baked pasta). Neither if it suits any time of year.
+
+Tags: a few lowercase tags such as the main ingredient or occasion; don't repeat the labels as tags.
 
 If the input does not contain a recipe, return an empty title, no ingredients or steps, and a warning explaining what was found instead.`;
 

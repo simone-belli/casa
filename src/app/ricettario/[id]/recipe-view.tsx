@@ -8,6 +8,7 @@ import { ui } from "@/components/ui";
 import { useFamilyDefaults, useHousehold } from "@/lib/household";
 import { deleteRecipe } from "@/lib/recipes/db";
 import { formatAmount } from "@/lib/recipes/format";
+import { tagName } from "@/lib/recipes/labels";
 import { BATCH_MULTIPLIERS, portionsFor, scaleQuantity } from "@/lib/recipes/scaling";
 import type { Recipe } from "@/lib/recipes/types";
 import { RicettarioHeader } from "../header";
@@ -83,7 +84,7 @@ function RecipeDetails({ recipe }: { recipe: Recipe }) {
             <p className="mt-2 flex flex-wrap gap-1.5">
               {recipe.tags.map((tag) => (
                 <span key={tag} className="rounded-full bg-brand/10 px-2.5 py-0.5 text-xs font-medium text-brand">
-                  {tag}
+                  {tagName(tag)}
                 </span>
               ))}
             </p>

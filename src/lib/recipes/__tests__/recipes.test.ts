@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { formatAmount } from "../format";
-import { mergeMealTags, splitMealTags } from "../meals";
+import { mergeLabels, splitLabels } from "../labels";
+import { currentSeason, filterMenu } from "../menu";
 import { parseQuantity, quantityToInput } from "../quantity";
 import { portionsFor, scaleQuantity } from "../scaling";
 import { searchRecipes } from "../search";
@@ -147,15 +148,57 @@ describe("parseQuantity", () => {
   });
 });
 
-describe("meal tags", () => {
-  it("splits meals from other tags", () => {
-    expect(splitMealTags(["snack", "pasta", "dinner", "lunch"])).toEqual({ meals: ["lunch", "dinner", "snack"], others: ["pasta"] });
-    expect(splitMealTags([])).toEqual({ meals: [], others: [] });
+describe("labels", () => {
+  it("splits labels from other tags", () => {
+    expect(splitLabels(["snack", "pasta", "quick", "dinner", "lunch"])).toEqual({ labels: ["lunch", "dinner", "snack", "quick"], others: ["pasta"] });
+    expect(splitLabels([])).toEqual({ labels: [], others: [] });
   });
 
-  it("merges meals first, in order, without duplicates", () => {
-    expect(mergeMealTags(["dinner", "breakfast"], ["Pasta", "pasta", "lunch", " "])).toEqual(["breakfast", "dinner", "pasta"]);
-    expect(mergeMealTags([], ["dolci"])).toEqual(["dolci"]);
-    expect(mergeMealTags(["snack", "breakfast", "lunch", "dinner"], [])).toEqual(["breakfast", "lunch", "dinner", "snack"]);
+  it("merges labels first, in order, without duplicates", () => {
+    expect(mergeLabels(["dinner", "breakfast"], ["Pasta", "pasta", "lunch", " "])).toEqual(["breakfast", "dinner", "pasta"]);
+    expect(mergeLabels([], ["dolci"])).toEqual(["dolci"]);
+    expect(mergeLabels(["cold-season", "vegetarian", "italian", "snack"], ["Quick"])).toEqual(["snack", "italian", "vegetarian", "cold-season"]);
+  });
+});
+
+describe("menu", () => {
+  const recipe = (title: string, tags: string[]): Recipe => ({
+    id: title,
+    title,
+    notes: null,
+    tags,
+    kind: "portion",
+    yield: null,
+    ingredients: [],
+    steps: [],
+    source_url: null,
+    source_text: null,
+    photo_paths: [],
+    created_by: null,
+    updated_by: null,
+    created_at: "2026-01-01T00:00:00Z",
+    updated_at: "2026-01-01T00:00:00Z",
+  });
+  const salad = recipe("Panzanella", ["quick", "italian", "vegetarian", "hot-season"]);
+  const stew = recipe("Spezzatino", ["slow-cooker", "italian", "cold-season"]);
+  const curry = recipe("Dal", ["quick", "asian", "vegetarian"]);
+  const both = recipe("Minestrone", ["italian", "vegetarian", "hot-season", "cold-season"]);
+  const all = [salad, stew, curry, both];
+  const titles = (list: Recipe[]) => list.map((r) => r.title);
+
+  it("finds the season from the hot months", () => {
+    expect(currentSeason([6, 7, 8], new Date(2026, 6, 15))).toBe("hot-season");
+    expect(currentSeason([6, 7, 8], new Date(2026, 0, 15))).toBe("cold-season");
+  });
+
+  it("filters by course and vegetarian", () => {
+    expect(titles(filterMenu(all, { course: null, vegetarian: false, season: null }))).toEqual(titles(all));
+    expect(titles(filterMenu(all, { course: "quick", vegetarian: false, season: null }))).toEqual(["Panzanella", "Dal"]);
+    expect(titles(filterMenu(all, { course: "italian", vegetarian: true, season: null }))).toEqual(["Panzanella", "Minestrone"]);
+  });
+
+  it("keeps the season's recipes and those good all year", () => {
+    expect(titles(filterMenu(all, { course: null, vegetarian: false, season: "hot-season" }))).toEqual(["Panzanella", "Dal", "Minestrone"]);
+    expect(titles(filterMenu(all, { course: "italian", vegetarian: false, season: "cold-season" }))).toEqual(["Spezzatino", "Minestrone"]);
   });
 });

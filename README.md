@@ -10,7 +10,7 @@ home life. Specs live in [`docs/`](docs):
 
 | Section | Status |
 |---|---|
-| **Ricettario** (recipes) | v0: add by typing/dictation, photo or link; scaling; editing; live sync |
+| **Ricettario** (recipes) | v0: add by typing/dictation, photo or link; menu filters (quick, Italian, Asian…, vegetarian, in season); scaling; editing; live sync |
 | **Agenda** (calendar and tasks) | v0: calendar and tasks views, proposals, recurring items, weekly nudge, quick add with Claude, two-way Google Calendar sync; live sync |
 | **Groceries** (shopping list) | v1: home and shopping views, quick add, one-offs, supermarkets and aisles, paste import; live sync |
 
@@ -40,10 +40,11 @@ from the server.
    the Agenda migrations [`0006_agenda.sql`](supabase/migrations/0006_agenda.sql)
    and [`0007_agenda_sync.sql`](supabase/migrations/0007_agenda_sync.sql), and finally
    [`0008_bug_reports.sql`](supabase/migrations/0008_bug_reports.sql) for the
-   *Report a bug* screen.
+   *Report a bug* screen and [`0009_seasons.sql`](supabase/migrations/0009_seasons.sql)
+   for Ricettario's seasons.
 
    **Already set up?** Run, in order, whichever of these you haven't run yet.
-   `0003`, `0005`, `0007` and `0008` are safe to run again; if Groceries says the home places
+   `0003`, `0005`, `0007`, `0008` and `0009` are safe to run again; if Groceries says the home places
    aren't set up, run `0003`.
 3. Still in the SQL Editor, add the two of you (lower-case emails):
 
