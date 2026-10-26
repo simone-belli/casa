@@ -17,7 +17,7 @@ type Change = (edit: ((current: Groceries) => Groceries) | null, save: () => Pro
 export function FileAll({ store, data, change }: { store: Store; data: Groceries; change: Change }) {
   const [choice, setChoice] = useState(NOT_SOLD);
   const [replace, setReplace] = useState(false);
-  const [message, setMessage] = useState<string | null>(null);
+  const [message, setMessage] = useState<{ text: string; failed: boolean } | null>(null);
 
   const aisles = data.aisles.filter((a) => a.store_id === store.id).sort((a, b) => a.position - b.position);
   // The chosen aisle may have been deleted meanwhile.
@@ -34,7 +34,11 @@ export function FileAll({ store, data, change }: { store: Store; data: Groceries
       (d) => ({ ...d, itemAisles: [...d.itemAisles.filter((f) => f.store_id !== store.id || !filed.has(f.item_id)), ...rows] }),
       () => fileItems(rows, replace),
     );
-    if (saved) setMessage(`Filed ${rows.length} items ${where}. Change any with ⋯ on the item, or as you shop.`);
+    setMessage(
+      saved
+        ? { text: `Filed ${rows.length} items ${where}. Change any with ⋯ on the item, or as you shop.`, failed: false }
+        : { text: "Couldn't save that. Check your connection and try again.", failed: true },
+    );
   }
 
   return (
@@ -60,7 +64,7 @@ export function FileAll({ store, data, change }: { store: Store; data: Groceries
       <button type="button" onClick={() => void fileAll()} disabled={rows.length === 0} className={ui.secondary}>
         {rows.length === 0 ? "Nothing to file" : `File ${rows.length} items ${where}`}
       </button>
-      {message && <p className="text-sm text-brand">{message}</p>}
+      {message && <p className={message.failed ? ui.error : "text-sm text-brand"}>{message.text}</p>}
     </div>
   );
 }

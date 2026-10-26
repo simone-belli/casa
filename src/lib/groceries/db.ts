@@ -22,25 +22,37 @@ function check(error: { code?: string; message: string } | null): void {
   throw error;
 }
 
-export async function loadGroceries(): Promise<Groceries> {
+/** Supabase returns at most this many rows per request (its default limit). */
+const PAGE = 1000;
+
+/**
+ * Every row of a table, fetched a page at a time: one request would be cut
+ * off at PAGE rows without any error (filings grow with items × supermarkets).
+ */
+async function selectAll<T>(table: (typeof TABLES)[number], columns: string, orderBy: string[]): Promise<T[]> {
   const db = supabaseBrowser();
+  const rows: T[] = [];
+  for (;;) {
+    let query = db.from(table).select(columns);
+    for (const column of orderBy) query = query.order(column);
+    const { data, error } = await query.range(rows.length, rows.length + PAGE - 1);
+    check(error);
+    const page = (data ?? []) as T[];
+    rows.push(...page);
+    if (page.length < PAGE) return rows;
+  }
+}
+
+export async function loadGroceries(): Promise<Groceries> {
   const [items, places, stores, aisles, itemPlaces, itemAisles] = await Promise.all([
-    db.from("grocery_items").select("*"),
-    db.from("grocery_places").select("id, name, position"),
-    db.from("grocery_stores").select("id, name, position"),
-    db.from("grocery_aisles").select("id, store_id, name, position"),
-    db.from("grocery_item_places").select("item_id, place_id"),
-    db.from("grocery_item_aisles").select("item_id, store_id, aisle_id"),
+    selectAll<Item>("grocery_items", "*", ["id"]),
+    selectAll<Place>("grocery_places", "id, name, position", ["id"]),
+    selectAll<Store>("grocery_stores", "id, name, position", ["id"]),
+    selectAll<Aisle>("grocery_aisles", "id, store_id, name, position", ["id"]),
+    selectAll<ItemPlace>("grocery_item_places", "item_id, place_id", ["item_id", "place_id"]),
+    selectAll<ItemAisle>("grocery_item_aisles", "item_id, store_id, aisle_id", ["item_id", "store_id"]),
   ]);
-  for (const result of [items, places, stores, aisles, itemPlaces, itemAisles]) check(result.error);
-  return {
-    items: items.data as Item[],
-    places: places.data as Place[],
-    stores: stores.data as Store[],
-    aisles: aisles.data as Aisle[],
-    itemPlaces: itemPlaces.data as ItemPlace[],
-    itemAisles: itemAisles.data as ItemAisle[],
-  };
+  return { items, places, stores, aisles, itemPlaces, itemAisles };
 }
 
 /** Calls `onChange` whenever anything in Groceries changes, by either person. */
