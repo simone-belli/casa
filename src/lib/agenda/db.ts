@@ -1,6 +1,7 @@
 "use client";
 
 import { supabaseBrowser } from "@/lib/supabase/client";
+import { selectAll } from "@/lib/supabase/select-all";
 import { uid } from "@/lib/uid";
 import type { AssignmentPlan } from "./assign";
 import type { ItemFields } from "./draft";
@@ -14,12 +15,10 @@ function check(error: { message: string } | null): void {
 export async function loadAgenda(): Promise<Agenda> {
   const db = supabaseBrowser();
   const [items, proposals] = await Promise.all([
-    db.from("agenda_items").select("*"),
-    db.from("agenda_proposals").select("*"),
+    selectAll<AgendaItem>((from, to) => db.from("agenda_items").select("*").order("id").range(from, to)),
+    selectAll<Proposal>((from, to) => db.from("agenda_proposals").select("*").order("id").range(from, to)),
   ]);
-  check(items.error);
-  check(proposals.error);
-  return { items: items.data as AgendaItem[], proposals: proposals.data as Proposal[] };
+  return { items, proposals };
 }
 
 /** Calls `onChange` whenever an item or proposal changes, by either person or from Google. */

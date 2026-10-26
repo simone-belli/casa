@@ -48,10 +48,18 @@ function query(table: string) {
     kind: "select",
   };
   let single: "single" | "maybe" | null = null;
+  let orderBy: string | null = null;
+  let range: [number, number] | null = null;
 
   const run = () => {
     let result: Row[] = [];
-    if (op.kind === "select") result = rows.filter((r) => filters.every((f) => f(r)));
+    if (op.kind === "select") {
+      result = rows.filter((r) => filters.every((f) => f(r)));
+      if (orderBy) result.sort((a, b) => String(a[orderBy!]).localeCompare(String(b[orderBy!])));
+      if (range) result = result.slice(range[0], range[1] + 1);
+      // Like Supabase: never more than 1000 rows in one answer.
+      result = result.slice(0, 1000);
+    }
     if (op.kind === "update") {
       for (const r of rows.filter((r) => filters.every((f) => f(r)))) {
         Object.assign(r, op.values, table === "agenda_items" ? { updated_at: now() } : {});
@@ -77,6 +85,9 @@ function query(table: string) {
         if (existing && op.kind === "insert") return { data: null, error: { message: "duplicate", code: "23505" } };
         if (existing) {
           Object.assign(existing, values, table === "agenda_items" ? { updated_at: now() } : {});
+          // Like Postgres, an updated row is stored anew, so unordered reads see it last.
+          rows.splice(rows.indexOf(existing), 1);
+          rows.push(existing);
           result.push(existing);
         } else {
           const row = prepare(table, values);
@@ -100,6 +111,8 @@ function query(table: string) {
     delete: () => ((op = { kind: "delete" }), builder),
     insert: (values: Row | Row[]) => ((op = { kind: "insert", values: [values].flat() }), builder),
     upsert: (values: Row | Row[], options?: { onConflict?: string }) => ((op = { kind: "upsert", values: [values].flat(), onConflict: options?.onConflict }), builder),
+    order: (c: string) => ((orderBy = c), builder),
+    range: (from: number, to: number) => ((range = [from, to]), builder),
     single: () => ((single = "single"), builder),
     maybeSingle: () => ((single = "maybe"), builder),
     then: (resolve: (v: unknown) => unknown, reject: (e: unknown) => unknown) => Promise.resolve().then(run).then(resolve, reject),
@@ -293,6 +306,19 @@ describe("Google sync", () => {
     editInGoogle("fromgoogle", { status: "cancelled" });
     await syncNow();
     expect(items().find((i) => i.id === dinner.id)).toBeUndefined();
+  });
+
+  it("handles more events than Supabase returns in one answer, without deleting any", async () => {
+    for (let i = 0; i < 1500; i++) {
+      const day = String((i % 28) + 1).padStart(2, "0");
+      store(`ev${i}`, { id: `ev${i}`, status: "confirmed", summary: `Event ${i}`, start: { dateTime: `2026-11-${day}T09:00:00Z` }, end: { dateTime: `2026-11-${day}T10:00:00Z` } });
+    }
+    await syncNow();
+    expect(items()).toHaveLength(1500);
+    await syncNow();
+    expect(items()).toHaveLength(1500);
+    expect([...google.values()].filter((e) => e.status === "cancelled")).toHaveLength(0);
+    expect(tables.agenda_google_links).toHaveLength(1500);
   });
 
   it("keeps the newer side when both changed at once", async () => {

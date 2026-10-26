@@ -14,6 +14,7 @@ import {
 } from "@/lib/agenda/google";
 import { isDated } from "@/lib/agenda/occurrences";
 import type { AgendaItem, Proposal } from "@/lib/agenda/types";
+import { selectAll } from "@/lib/supabase/select-all";
 import { supabaseService } from "@/lib/supabase/service";
 import {
   accessToken,
@@ -94,20 +95,14 @@ type Snapshot = {
 async function snapshot(): Promise<Snapshot> {
   const service = db();
   const [items, proposals, links, names] = await Promise.all([
-    service.from("agenda_items").select("*"),
-    service.from("agenda_proposals").select("*").eq("status", "pending"),
-    service.from("agenda_google_links").select("item_id, google_event_id, google_etag, pushed_hash"),
+    selectAll<AgendaItem>((from, to) => service.from("agenda_items").select("*").order("id").range(from, to)),
+    selectAll<Proposal>((from, to) => service.from("agenda_proposals").select("*").eq("status", "pending").order("id").range(from, to)),
+    selectAll<Link>((from, to) =>
+      service.from("agenda_google_links").select("item_id, google_event_id, google_etag, pushed_hash").order("item_id").range(from, to),
+    ),
     members(),
   ]);
-  check(items.error);
-  check(proposals.error);
-  check(links.error);
-  return {
-    items: new Map((items.data as AgendaItem[]).map((i) => [i.id, i])),
-    proposals: proposals.data as Proposal[],
-    links: links.data as Link[],
-    names,
-  };
+  return { items: new Map(items.map((i) => [i.id, i])), proposals, links, names };
 }
 
 /** What Agenda would write to Google for an item now, and its hash. */
@@ -372,6 +367,11 @@ async function push(state: SyncState, token: string): Promise<number> {
   for (const link of snap.links) {
     if (snap.items.has(link.item_id)) continue;
     problems += await attempt(`deleting event ${link.google_event_id}`, async () => {
+      // Deleting from Google can't be undone from here: make sure the item
+      // really is gone, not just missing from what was read.
+      const { data, error } = await db().from("agenda_items").select("id").eq("id", link.item_id).maybeSingle();
+      check(error);
+      if (data) return;
       // A dropped occurrence row goes back to the series' default; deleting it
       // in Google would cancel the occurrence instead.
       if (!isInstanceId(link.google_event_id)) await remove(link.google_event_id);
