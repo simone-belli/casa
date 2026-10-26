@@ -38,10 +38,12 @@ from the server.
    [`0004_freezer.sql`](supabase/migrations/0004_freezer.sql) and
    [`0005_not_sold_here.sql`](supabase/migrations/0005_not_sold_here.sql), then
    the Agenda migrations [`0006_agenda.sql`](supabase/migrations/0006_agenda.sql)
-   and [`0007_agenda_sync.sql`](supabase/migrations/0007_agenda_sync.sql).
+   and [`0007_agenda_sync.sql`](supabase/migrations/0007_agenda_sync.sql), and finally
+   [`0008_bug_reports.sql`](supabase/migrations/0008_bug_reports.sql) for the
+   *Report a bug* screen.
 
    **Already set up?** Run, in order, whichever of these you haven't run yet.
-   `0003`, `0005` and `0007` are safe to run again; if Groceries says the home places
+   `0003`, `0005`, `0007` and `0008` are safe to run again; if Groceries says the home places
    aren't set up, run `0003`.
 3. Still in the SQL Editor, add the two of you (lower-case emails):
 
@@ -180,7 +182,7 @@ npm run icons      # regenerate app icons after changing a logo in logos/
 Layout:
 
 ```
-src/app/(casa)/        Casa home, sign-in, settings          (terracotta theme)
+src/app/(casa)/        Casa home, sign-in, settings, bug reports (terracotta theme)
 src/app/ricettario/    recipe list, add, view, edit          (trattoria red)
 src/app/agenda/        calendar, tasks, add/edit, settings   (navy and amber)
 src/app/groceries/     at home, shopping, settings, import   (green and kraft)
@@ -197,6 +199,14 @@ src/lib/google/        Google Calendar API calls, token encryption, the sync its
 supabase/migrations/   database schema and security rules
 logos/                 source logos; public/brand and public/icons are generated
 ```
+
+## Bug reports
+
+The small *Report a bug* button on the Casa home screen opens a screen where
+either of you can type or dictate what went wrong. Reports are saved in the
+`bug_reports` table (Supabase → **Table Editor**), with who sent it, when, and
+the phone's browser. The phones can only add reports; review them in the
+dashboard and set `status` to `fixed` or `wontfix` once dealt with.
 
 ## Known limitations of v0
 

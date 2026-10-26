@@ -8,7 +8,8 @@
 - Designed to host several sections; more may be added later.
 - Initial sections: **Ricettario** and **Groceries** (built), **Agenda** (empty placeholder for now).
 - Each section has its own name, logo and visual theme. Casa, Ricettario, Agenda and Groceries do not share a theme.
-- Home screen: the Casa logo and large buttons for **Ricettario**, **Agenda** and **Groceries** (Agenda marked "coming soon"), with a small link to Settings.
+- Home screen: the Casa logo and large buttons for **Agenda**, **Groceries** and **Ricettario**, in that order, then a small **Report a bug** button and a small link to Settings.
+- Report a bug: a screen where either person types or dictates (with the keyboard's microphone) what went wrong and sends it. Reports are stored in the database for review during development; the app can only add them.
 - Settings (Casa level, shared): default family size, the household members, sign out.
 - Casa is deployed on Vercel and served over HTTPS, so it works from anywhere, not just on the home Wi-Fi. It can still be run on a computer for development.
 

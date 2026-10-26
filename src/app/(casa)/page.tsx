@@ -3,9 +3,9 @@ import { SafeLink } from "@/components/safe-link";
 import { ui } from "@/components/ui";
 
 const SECTIONS = [
-  { href: "/ricettario", logo: "/brand/ricettario.svg", name: "Ricettario", blurb: "Our recipes", soon: false },
   { href: "/agenda", logo: "/brand/agenda.svg", name: "Agenda", blurb: "Our calendar and tasks", soon: false },
   { href: "/groceries", logo: "/brand/groceries.svg", name: "Groceries", blurb: "Our shopping list", soon: false },
+  { href: "/ricettario", logo: "/brand/ricettario.svg", name: "Ricettario", blurb: "Our recipes", soon: false },
 ];
 
 export default function CasaHome() {
@@ -31,6 +31,15 @@ export default function CasaHome() {
           </SafeLink>
         ))}
       </nav>
+
+      <div className="mt-6 flex justify-center">
+        <SafeLink
+          href="/report-bug"
+          className="rounded-full border border-line bg-surface px-3 py-1.5 text-sm text-muted shadow-sm active:bg-line"
+        >
+          🐞 Report a bug
+        </SafeLink>
+      </div>
 
       <footer className="mt-auto pt-10 text-center">
         <SafeLink href="/settings" className="text-muted underline-offset-4 active:underline">
