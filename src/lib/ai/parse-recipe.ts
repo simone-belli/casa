@@ -16,6 +16,8 @@ const parsedRecipeSchema = z.object({
   labels: z.array(z.enum(LABELS)),
   kind: z.enum(RECIPE_KINDS),
   yield: z.string().nullable(),
+  /** Portion recipes: the servings the quantities were divided by. */
+  servings: z.number().nullable(),
   ingredients: z.array(
     z.object({
       name: z.string(),
@@ -49,8 +51,8 @@ Language: the recipe book is in English, so write everything in natural British 
 Transcription: when reading photos, transcribe faithfully. If a word or quantity is illegible, give your best reading and add a warning saying which part to check. Recipes may continue across several photos; combine them into one recipe.
 
 Kind:
-- "portion" for dishes served in portions (pasta, mains, soups, salads). Store every scalable quantity per ONE ADULT PORTION: divide the original amounts by the number of servings the recipe states. If the recipe gives no number of servings, estimate it from the quantities and add a warning stating the number you assumed.
-- "batch" for things made as a unit (cakes, bread, biscuits, jams, sauces made in bulk). Keep quantities for one batch as written, and set "yield" to a short description such as "1 cake, 24 cm tin" or "about 20 biscuits". "yield" is null for portion recipes.
+- "portion" for dishes served in portions (pasta, mains, soups, salads). Store every scalable quantity per ONE ADULT PORTION: divide the original amounts by the number of servings the recipe states. If the recipe gives no number of servings, estimate it from the quantities and add a warning stating the number you assumed. Set "servings" to the number you divided by (stated or estimated).
+- "batch" for things made as a unit (cakes, bread, biscuits, jams, sauces made in bulk). Keep quantities for one batch as written, and set "yield" to a short description such as "1 cake, 24 cm tin" or "about 20 biscuits"; if the recipe only says how many it serves, use that, e.g. "8 servings". "yield" is null for portion recipes; "servings" is null for batch recipes.
 
 Units: metric only. Use g, kg, ml, l, tsp, tbsp, or a count unit (piece, clove, slice, sprig, leaf, bunch, can, jar, packet, tin, pinch). Use an empty unit for plain counts ("3 eggs" is quantity 3, unit ""). Convert imperial and US units (cups, ounces, pounds, sticks of butter, fl oz) to metric, using typical weights for dry ingredients (for example 1 cup of flour is about 125 g, 1 cup of sugar about 200 g). Convert oven temperatures in °F to °C inside the steps. Keep the unit singular; the app adds plurals.
 

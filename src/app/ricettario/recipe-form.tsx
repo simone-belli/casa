@@ -74,6 +74,15 @@ export function RecipeForm({ initial, initialPortions, warnings = [], banner, su
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // The amounts shown are for `portions` servings; made as a batch they stay
+  // as they are, and the batch makes that many servings.
+  function changeKind(next: typeof kind) {
+    if (next === "batch" && kind === "portion" && !yieldText.trim()) {
+      setYieldText(`${quantityToInput(portions)} ${portions === 1 ? "serving" : "servings"}`);
+    }
+    setKind(next);
+  }
+
   const updateIngredient = (key: string, patch: Partial<IngredientRow>) =>
     setIngredients((rows) => rows.map((r) => (r.key === key ? { ...r, ...patch } : r)));
   const updateStep = (key: string, text: string) =>
@@ -158,7 +167,7 @@ export function RecipeForm({ initial, initialPortions, warnings = [], banner, su
               <button
                 key={k}
                 type="button"
-                onClick={() => setKind(k)}
+                onClick={() => changeKind(k)}
                 aria-pressed={kind === k}
                 className={`min-h-11 rounded-xl border px-3 text-sm font-semibold ${kind === k ? "border-brand bg-brand text-brand-ink" : "border-line bg-surface text-ink"}`}
               >

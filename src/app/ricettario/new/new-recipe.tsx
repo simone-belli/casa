@@ -12,7 +12,7 @@ import { emptyDraft, type RecipeDraft } from "@/lib/recipes/types";
 import { RecipeForm } from "../recipe-form";
 
 type Method = "text" | "photo" | "paste";
-type Review = { draft: RecipeDraft; warnings: string[] };
+type Review = { draft: RecipeDraft; warnings: string[]; servings: number | null };
 
 const METHODS: { id: Method; icon: string; title: string; hint: string }[] = [
   { id: "text", icon: "🎙️", title: "Type or dictate", hint: "Use the microphone on your keyboard" },
@@ -109,7 +109,8 @@ export function NewRecipe() {
     return (
       <RecipeForm
         initial={review.draft}
-        initialPortions={portionsFor(family.default_adults, family.default_children)}
+        // Show the source's own amounts, so they can be checked against it.
+        initialPortions={review.servings ?? portionsFor(family.default_adults, family.default_children)}
         warnings={review.warnings}
         submitLabel="Save recipe"
         onCancel={cancel}
@@ -125,7 +126,7 @@ export function NewRecipe() {
   if (!method) {
     return (
       <div className="flex flex-col gap-3 pt-5">
-        <button type="button" onClick={() => setReview({ draft: emptyDraft(), warnings: [] })} className={`${ui.card} flex items-center gap-4 text-left active:bg-bg`}>
+        <button type="button" onClick={() => setReview({ draft: emptyDraft(), warnings: [], servings: null })} className={`${ui.card} flex items-center gap-4 text-left active:bg-bg`}>
           <span className="text-3xl" aria-hidden>
             ✍️
           </span>

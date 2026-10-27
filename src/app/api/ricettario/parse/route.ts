@@ -14,7 +14,14 @@ const requestSchema = z.discriminatedUnion("type", [
 ]);
 type ParseRequest = z.infer<typeof requestSchema>;
 
-export type ParseResponse = { draft: RecipeDraft; warnings: string[] } | { error: string };
+export type ParseResponse =
+  | {
+      draft: RecipeDraft;
+      warnings: string[];
+      /** Portion recipes: how many servings the source's amounts were for. */
+      servings: number | null;
+    }
+  | { error: string };
 
 const IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"] as const;
 type ImageType = (typeof IMAGE_TYPES)[number];
@@ -76,7 +83,8 @@ export async function POST(request: Request): Promise<NextResponse<ParseResponse
     }
 
     const parsed = await parseRecipe(input);
-    return NextResponse.json({ draft: toDraft(parsed, req, sourceUrl), warnings: parsed.warnings });
+    const servings = parsed.kind === "portion" && parsed.servings && parsed.servings > 0 ? parsed.servings : null;
+    return NextResponse.json({ draft: toDraft(parsed, req, sourceUrl), warnings: parsed.warnings, servings });
   } catch (error) {
     if (error instanceof ParseError || error instanceof FetchPageError) {
       return NextResponse.json({ error: error.message }, { status: 422 });
