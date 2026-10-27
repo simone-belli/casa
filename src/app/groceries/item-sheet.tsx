@@ -5,6 +5,7 @@ import { ui } from "@/components/ui";
 import { deleteItem, fileItem, setItemPlaces, updateItem } from "@/lib/groceries/db";
 import { NOT_SOLD, type Groceries, type Item } from "@/lib/groceries/types";
 import type { useGroceries } from "@/lib/groceries/use-groceries";
+import { AislesPicker, PlacesPicker } from "./parts";
 
 type Props = {
   item: Item;
@@ -106,54 +107,8 @@ export function ItemSheet({ item, data, change, onClose }: Props) {
 
         {!isOneOff && (
           <>
-            <fieldset>
-              <legend className={ui.label}>At home</legend>
-              <div className="flex flex-wrap gap-2">
-                {[...data.places].sort(byPosition).map((place) => {
-                  const on = places.includes(place.id);
-                  return (
-                    <button
-                      key={place.id}
-                      type="button"
-                      aria-pressed={on}
-                      onClick={() => setPlaces(on ? places.filter((p) => p !== place.id) : [...places, place.id])}
-                      className={`rounded-full border px-3 py-1.5 text-sm font-medium ${
-                        on ? "border-brand bg-brand text-brand-ink" : "border-line bg-surface text-ink"
-                      }`}
-                    >
-                      {place.name}
-                    </button>
-                  );
-                })}
-              </div>
-            </fieldset>
-
-            {stores.length > 0 && (
-              <fieldset className="flex flex-col gap-3">
-                <legend className={ui.label}>Aisle</legend>
-                {stores.map((store) => (
-                  <label key={store.id} className="flex items-center justify-between gap-3">
-                    <span className="min-w-0 truncate">{store.name}</span>
-                    <select
-                      value={aisles[store.id] ?? ""}
-                      onChange={(e) => setAisles({ ...aisles, [store.id]: e.target.value })}
-                      className={`${ui.input} w-auto max-w-[60%]`}
-                    >
-                      <option value="">Not sorted yet</option>
-                      <option value={NOT_SOLD}>Not sold here</option>
-                      {data.aisles
-                        .filter((a) => a.store_id === store.id)
-                        .sort(byPosition)
-                        .map((a) => (
-                          <option key={a.id} value={a.id}>
-                            {a.name}
-                          </option>
-                        ))}
-                    </select>
-                  </label>
-                ))}
-              </fieldset>
-            )}
+            <PlacesPicker places={data.places} value={places} onChange={setPlaces} />
+            <AislesPicker data={data} value={aisles} onChange={setAisles} />
           </>
         )}
 

@@ -53,7 +53,7 @@ The most frequent action, available in both views.
 
 ## From a recipe
 
-A recipe in the Ricettario has a **Buy ingredients** button (see [RICETTARIO-SPEC.md](RICETTARIO-SPEC.md)). The ingredients we tick become **need**: an existing item with the same name (ignoring case, accents and plurals, so "eggs" finds "Egg") is switched to need, and anything else is added as a new regular item with no home place (it shows under **Other** until given one). An item can carry an **amount** for this trip (e.g. "600 g"), shown under its name with the note. Adding more of something already on the list adds to the amount ("200 g + 600 g"). The amount is cleared when the item is bought, and can be changed in the item's edit sheet while we need it.
+A recipe in the Ricettario has a **Buy ingredients** button (see [RICETTARIO-SPEC.md](RICETTARIO-SPEC.md)). The ingredients we tick become **need**: an existing item with the same name (ignoring case, accents and plurals, so "eggs" finds "Egg") is switched to need, and for anything else the person either picks the existing item it is (similar names are suggested) or sets it up as a new item, with its home places and aisles, before it's added. An item can carry an **amount** for this trip (e.g. "600 g"), shown under its name with the note. Adding more of something already on the list adds to the amount ("200 g + 600 g"). The amount is cleared when the item is bought, and can be changed in the item's edit sheet while we need it.
 
 ## Who needs it (optional view)
 

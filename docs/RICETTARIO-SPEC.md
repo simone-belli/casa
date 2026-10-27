@@ -86,6 +86,10 @@ Under **Ingredients**, a **Buy ingredients** button opens a checklist of the rec
 - Nothing is ticked at first: we tick what we need to buy. Each row says whether it's new to Groceries, already on the list, or one Groceries says we have.
 - Ingredients with a quantity show their amount, scaled as on the recipe screen. The amount is kept for weights and volumes (g, kg, ml, l) and left off for counts and spoons ("eggs", not "3 eggs"); tapping it switches it.
 - **Done** adds the ticked ingredients to the list as needed, with the amounts kept, and offers to open Groceries.
+- If some ticked ingredients aren't in Groceries by that name, Done first asks about each of them, one at a time:
+  - **Is it something already in Groceries?** Items with a similar name are suggested ("Parmigiano" for "Parmigiano Reggiano"), and a search box finds any other. Picking one adds that item instead.
+  - **No, it's a new item**: its name in Groceries (the ingredient's, editable), whether it's a one-off, its home places and its aisle in each supermarket, as in Groceries' own edit sheet. Chosen straight away when nothing similar is in Groceries.
+  Nothing is saved until the last one is answered; Back returns to the previous question, then to the checklist.
 
 ## Finding recipes
 

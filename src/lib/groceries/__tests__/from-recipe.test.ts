@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { Ingredient } from "@/lib/recipes/types";
-import { amountByDefault, combineAmounts, findItem, planPurchase, shoppingAmount } from "../from-recipe";
+import { amountByDefault, combineAmounts, findItem, planPurchase, shoppingAmount, similarItems } from "../from-recipe";
 import type { Item } from "../types";
 
 const item = (id: string, name: string, status: Item["status"] = "have", amount: string | null = null): Item => ({
@@ -60,7 +60,33 @@ describe("findItem", () => {
   });
 });
 
+describe("similarItems", () => {
+  const items = [
+    item("parm", "Parmigiano"),
+    item("tins", "Tinned tomatoes"),
+    item("cherry", "Cherry tomatoes"),
+    item("milk", "Milk"),
+    item("oil", "Olive oil"),
+  ];
+
+  it("suggests items sharing a word, closest first", () => {
+    expect(similarItems(items, "Parmigiano Reggiano").map((i) => i.id)).toEqual(["parm"]);
+    expect(similarItems(items, "tomato").map((i) => i.id)).toEqual(["cherry", "tins"]);
+    expect(similarItems(items, "extra virgin olive oil").map((i) => i.id)).toEqual(["oil"]);
+    expect(similarItems(items, "basil")).toEqual([]);
+  });
+
+  it("ignores short words like 'of' and 'di'", () => {
+    expect(similarItems([item("cream", "Cream of tartar")], "pinch of salt")).toEqual([]);
+  });
+});
+
 describe("planPurchase", () => {
+  it("uses the item the person picked for an ingredient", () => {
+    const plan = planPurchase([item("parm", "Parmigiano")], [{ name: "Parmigiano Reggiano", amount: "50 g", itemId: "parm" }]);
+    expect(plan).toEqual({ update: [{ id: "parm", amount: "50 g" }], create: [] });
+  });
+
   it("marks existing items needed and adds new ones", () => {
     const items = [item("eggs", "Eggs"), item("mince", "Minced meat", "need", "200 g")];
     const plan = planPurchase(items, [

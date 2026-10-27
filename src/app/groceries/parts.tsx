@@ -1,7 +1,7 @@
 "use client";
 
 import { ui } from "@/components/ui";
-import { HOME_PLACES, type Place } from "@/lib/groceries/types";
+import { HOME_PLACES, NOT_SOLD, type Groceries, type Place } from "@/lib/groceries/types";
 
 /** A save error, dismissed with a tap. */
 export function ErrorBanner({ error, onDismiss }: { error: string | null; onDismiss: () => void }) {
@@ -67,5 +67,76 @@ export function PlacesCheck({ places }: { places: Place[] }) {
       The home places aren&apos;t set up yet ({names.join(", ") || "none"} instead of {HOME_PLACES.join(", ")}). In Supabase →
       SQL Editor, run <code>0003_fixed_home_places.sql</code> (safe to run again), then reload this page.
     </p>
+  );
+}
+
+const byPosition = <T extends { position: number }>(a: T, b: T) => a.position - b.position;
+
+/** Pick an item's home places (any number). */
+export function PlacesPicker({ places, value, onChange }: { places: Place[]; value: string[]; onChange: (ids: string[]) => void }) {
+  return (
+    <fieldset>
+      <legend className={ui.label}>At home</legend>
+      <div className="flex flex-wrap gap-2">
+        {[...places].sort(byPosition).map((place) => {
+          const on = value.includes(place.id);
+          return (
+            <button
+              key={place.id}
+              type="button"
+              aria-pressed={on}
+              onClick={() => onChange(on ? value.filter((p) => p !== place.id) : [...value, place.id])}
+              className={`rounded-full border px-3 py-1.5 text-sm font-medium ${
+                on ? "border-brand bg-brand text-brand-ink" : "border-line bg-surface text-ink"
+              }`}
+            >
+              {place.name}
+            </button>
+          );
+        })}
+      </div>
+    </fieldset>
+  );
+}
+
+/**
+ * Pick an item's aisle in each supermarket: store id → aisle id, NOT_SOLD,
+ * or "" for not sorted yet.
+ */
+export function AislesPicker({
+  data,
+  value,
+  onChange,
+}: {
+  data: Pick<Groceries, "stores" | "aisles">;
+  value: Record<string, string>;
+  onChange: (aisles: Record<string, string>) => void;
+}) {
+  if (data.stores.length === 0) return null;
+  return (
+    <fieldset className="flex flex-col gap-3">
+      <legend className={ui.label}>Aisle</legend>
+      {[...data.stores].sort(byPosition).map((store) => (
+        <label key={store.id} className="flex items-center justify-between gap-3">
+          <span className="min-w-0 truncate">{store.name}</span>
+          <select
+            value={value[store.id] ?? ""}
+            onChange={(e) => onChange({ ...value, [store.id]: e.target.value })}
+            className={`${ui.input} w-auto max-w-[60%]`}
+          >
+            <option value="">Not sorted yet</option>
+            <option value={NOT_SOLD}>Not sold here</option>
+            {data.aisles
+              .filter((a) => a.store_id === store.id)
+              .sort(byPosition)
+              .map((a) => (
+                <option key={a.id} value={a.id}>
+                  {a.name}
+                </option>
+              ))}
+          </select>
+        </label>
+      ))}
+    </fieldset>
   );
 }
