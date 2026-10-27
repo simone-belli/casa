@@ -11,7 +11,7 @@ A shared recipe library for Simone and Kat. Today recipes are scattered across m
 - Two users (Simone and Kat), each with their own login.
 - One shared collection: both can view, add and edit everything; changes are visible to the other immediately (live updates).
 - Used essentially 100% on phones. Mobile-first web app (PWA) that can be added to the home screen; no app store.
-- Interface language: **English**. Recipes keep the language they were written in.
+- Interface language: **English**. Recipes are kept in English too: one written in another language (often Italian) is translated when it's read, so the review form already shows it in English. Dishes known in English by their Italian name keep it (Tiramisù). The original text, page or photos stay attached as the source.
 
 ## Architecture
 
