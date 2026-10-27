@@ -43,6 +43,7 @@ export function QuickAdd({ data, change, me, onCreated }: Props) {
       id: uid(),
       name,
       note: null,
+      amount: null,
       status: "need",
       is_one_off: isOneOff,
       needed_by: me,

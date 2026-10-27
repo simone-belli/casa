@@ -6,6 +6,7 @@ const item = (id: string, name: string, status: Item["status"] = "have", is_one_
   id,
   name,
   note: null,
+  amount: null,
   status,
   is_one_off,
   needed_by: null,

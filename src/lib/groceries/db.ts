@@ -75,7 +75,7 @@ export async function setStatus(id: string, status: ItemStatus): Promise<void> {
   check(error);
 }
 
-export type NewItem = { id?: string; name: string; note?: string | null; status: ItemStatus; is_one_off: boolean };
+export type NewItem = { id?: string; name: string; note?: string | null; amount?: string | null; status: ItemStatus; is_one_off: boolean };
 
 export async function createItem(item: NewItem): Promise<string> {
   const id = item.id ?? uid();
@@ -86,7 +86,7 @@ export async function createItem(item: NewItem): Promise<string> {
   return id;
 }
 
-export async function updateItem(id: string, fields: Partial<Pick<Item, "name" | "note" | "is_one_off" | "status">>) {
+export async function updateItem(id: string, fields: Partial<Pick<Item, "name" | "note" | "amount" | "is_one_off" | "status">>) {
   const { error } = await supabaseBrowser().from("grocery_items").update(fields).eq("id", id);
   check(error);
 }

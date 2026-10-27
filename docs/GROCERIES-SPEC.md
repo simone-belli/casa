@@ -51,6 +51,10 @@ The most frequent action, available in both views.
 - No match: create a new item, already marked **need**. You can choose its home places (optional, skippable) or mark it as a **one-off**.
 - When a new regular item is added from the shop view, it's filed under the aisle you pick, or under **Not sorted yet**.
 
+## From a recipe
+
+A recipe in the Ricettario has a **Buy ingredients** button (see [RICETTARIO-SPEC.md](RICETTARIO-SPEC.md)). The ingredients we tick become **need**: an existing item with the same name (ignoring case, accents and plurals, so "eggs" finds "Egg") is switched to need, and anything else is added as a new regular item with no home place (it shows under **Other** until given one). An item can carry an **amount** for this trip (e.g. "600 g"), shown under its name with the note. Adding more of something already on the list adds to the amount ("200 g + 600 g"). The amount is cleared when the item is bought, and can be changed in the item's edit sheet while we need it.
+
 ## Who needs it (optional view)
 
 When an item switches to need, the app records who did it. A toggle (**Show who added it**, off by default, saved on each phone) shows a small "Simone" or "Kat" next to the items we need, in both views.
@@ -76,7 +80,7 @@ Supermarket filings aren't guessed. They're done while shopping, through **Not s
 ## Data model
 
 - `grocery_places`: id, name, position (the seven fixed places; read-only for the app)
-- `grocery_items`: id, name, note, status (`have` / `need`), is_one_off, needed_by (user, set when switched to need), needed_at, created by / updated by, timestamps
+- `grocery_items`: id, name, note, amount (this trip only; cleared when switched to have), status (`have` / `need`), is_one_off, needed_by (user, set when switched to need), needed_at, created by / updated by, timestamps
 - `grocery_item_places`: item id, place id
 - `grocery_stores`: id, name, position
 - `grocery_aisles`: id, store id, name, position
@@ -86,8 +90,7 @@ All tables are shared by the two users, with the same Row Level Security as the 
 
 ## Out of scope for v1
 
-- Adding a recipe's ingredients to the list from the Ricettario
-- Quantities and units as structured data (a free-text note covers it)
+- Quantities and units as structured data (a free-text note and amount cover it)
 - Prices, budgets and purchase history
 - Suggestions based on how often things are bought
 - Offline mode (supermarket reception may be patchy; revisit if it becomes a problem)

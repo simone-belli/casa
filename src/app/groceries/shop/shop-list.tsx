@@ -3,11 +3,11 @@
 import { useState } from "react";
 import { SafeLink } from "@/components/safe-link";
 import { ui } from "@/components/ui";
-import { createItem, deleteItem, fileItem, setStatus } from "@/lib/groceries/db";
+import { createItem, deleteItem, fileItem, setStatus, updateItem } from "@/lib/groceries/db";
 import { NOT_SOLD, type Item } from "@/lib/groceries/types";
 import { useDeviceSetting } from "@/lib/device-setting";
 import { useGroceries } from "@/lib/groceries/use-groceries";
-import { shopView } from "@/lib/groceries/views";
+import { itemDetail, shopView } from "@/lib/groceries/views";
 import { useHousehold } from "@/lib/household";
 import { ItemSheet } from "../item-sheet";
 import { EditButton, ErrorBanner, GroupTitle, LoadState, Tick } from "../parts";
@@ -54,7 +54,7 @@ export function ShopList() {
         ...d,
         items: item.is_one_off
           ? d.items.filter((i) => i.id !== item.id)
-          : d.items.map((i) => (i.id === item.id ? { ...i, status: "have", needed_by: null, needed_at: null } : i)),
+          : d.items.map((i) => (i.id === item.id ? { ...i, status: "have", needed_by: null, needed_at: null, amount: null } : i)),
       }),
       () => (item.is_one_off ? deleteItem(item.id) : setStatus(item.id, "have")),
     );
@@ -70,8 +70,9 @@ export function ShopList() {
       }),
       () =>
         item.is_one_off
-          ? createItem({ id: item.id, name: item.name, note: item.note, status: "need", is_one_off: true })
-          : setStatus(item.id, "need"),
+          ? createItem({ id: item.id, name: item.name, note: item.note, amount: item.amount, status: "need", is_one_off: true })
+          : // Buying it cleared the amount; put it back.
+            updateItem(item.id, { status: "need", amount: item.amount }),
     );
   };
 
@@ -98,7 +99,7 @@ export function ShopList() {
             <Tick ticked={false} />
             <span className="min-w-0">
               <span className="block truncate font-semibold">{item.name}</span>
-              {item.note && <span className="block truncate text-sm text-muted">{item.note}</span>}
+              {itemDetail(item) && <span className="block truncate text-sm text-muted">{itemDetail(item)}</span>}
             </span>
           </button>
           {who && <span className="shrink-0 pl-2 text-xs text-muted">{who}</span>}

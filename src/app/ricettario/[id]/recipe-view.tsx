@@ -15,6 +15,7 @@ import { RicettarioHeader } from "../header";
 import { useLastList } from "../menu-filters";
 import { PhotoStrip } from "../photo-strip";
 import { timeAgo } from "../time";
+import { BuyIngredients } from "./buy-ingredients";
 import { useRecipe } from "./use-recipe";
 
 
@@ -45,6 +46,7 @@ function RecipeDetails({ recipe, back }: { recipe: Recipe; back: { href: string;
   const [people, setPeople] = useState<{ adults: number; children: number } | null>(null);
   const [multiplier, setMultiplier] = useState(1);
   const [deleting, setDeleting] = useState(false);
+  const [buying, setBuying] = useState(false);
 
   const adults = people?.adults ?? family?.default_adults ?? 2;
   const children = people?.children ?? family?.default_children ?? 2;
@@ -128,7 +130,12 @@ function RecipeDetails({ recipe, back }: { recipe: Recipe; back: { href: string;
 
         {recipe.ingredients.length > 0 && (
           <section>
-            <h3 className="mb-2 font-display text-2xl">Ingredients</h3>
+            <div className="mb-2 flex items-center justify-between gap-3">
+              <h3 className="font-display text-2xl">Ingredients</h3>
+              <button type="button" onClick={() => setBuying(true)} className={`${ui.secondary} min-h-10 px-4 text-sm`}>
+                Buy ingredients
+              </button>
+            </div>
             <ul className="divide-y divide-line rounded-2xl border border-line bg-surface">
               {recipe.ingredients.map((ingredient, i) => {
                 const amount = formatAmount(scaleQuantity(ingredient, factor), ingredient.unit);
@@ -191,6 +198,7 @@ function RecipeDetails({ recipe, back }: { recipe: Recipe; back: { href: string;
           </button>
         </footer>
       </article>
+      {buying && <BuyIngredients ingredients={recipe.ingredients} factor={factor} onClose={() => setBuying(false)} />}
     </>
   );
 }

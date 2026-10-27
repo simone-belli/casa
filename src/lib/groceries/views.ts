@@ -74,6 +74,11 @@ export function fileAllRows(data: Groceries, storeId: string, aisleId: string | 
     .map((i) => ({ item_id: i.id, store_id: storeId, aisle_id: aisleId }));
 }
 
+/** The line under an item's name: how much we need and its note. */
+export function itemDetail(item: Item): string | null {
+  return [item.amount, item.note].filter(Boolean).join(" · ") || null;
+}
+
 /** Same name, ignoring case, accents and surrounding spaces. */
 export function sameName(a: string, b: string): boolean {
   return normalise(a.trim()) === normalise(b.trim());

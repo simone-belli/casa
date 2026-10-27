@@ -7,7 +7,7 @@ import { setStatus } from "@/lib/groceries/db";
 import type { Item } from "@/lib/groceries/types";
 import { useDeviceSetting } from "@/lib/device-setting";
 import { useGroceries } from "@/lib/groceries/use-groceries";
-import { homeGroups } from "@/lib/groceries/views";
+import { homeGroups, itemDetail } from "@/lib/groceries/views";
 import { useHousehold } from "@/lib/household";
 import { ItemSheet } from "./item-sheet";
 import { EditButton, ErrorBanner, GroupTitle, LoadState, PlacesCheck, Tick } from "./parts";
@@ -29,7 +29,11 @@ export function HomeList() {
       (d) => ({
         ...d,
         items: d.items.map((i) =>
-          i.id === item.id ? { ...i, status, needed_by: status === "need" ? me : null, needed_at: status === "need" ? new Date().toISOString() : null } : i,
+          i.id === item.id
+            ? status === "need"
+              ? { ...i, status, needed_by: me, needed_at: new Date().toISOString() }
+              : { ...i, status, needed_by: null, needed_at: null, amount: null }
+            : i,
         ),
       }),
       () => setStatus(item.id, status),
@@ -99,7 +103,7 @@ export function HomeList() {
                     <Tick ticked={!needed} />
                     <span className="min-w-0">
                       <span className={`block truncate ${needed ? "font-semibold text-ink" : "text-muted"}`}>{item.name}</span>
-                      {item.note && <span className="block truncate text-sm text-muted">{item.note}</span>}
+                      {itemDetail(item) && <span className="block truncate text-sm text-muted">{itemDetail(item)}</span>}
                     </span>
                   </button>
                   {who && <span className="shrink-0 pl-2 text-xs text-muted">{who}</span>}

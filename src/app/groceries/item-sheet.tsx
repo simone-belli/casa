@@ -15,7 +15,7 @@ type Props = {
 
 const byPosition = <T extends { position: number }>(a: T, b: T) => a.position - b.position;
 
-/** Edit an item: name, note, one-off, home places and its aisle in each supermarket. */
+/** Edit an item: name, note, amount needed, one-off, home places and its aisle in each supermarket. */
 export function ItemSheet({ item, data, change, onClose }: Props) {
   const initialPlaces = data.itemPlaces.filter((p) => p.item_id === item.id).map((p) => p.place_id);
   const initialAisles = Object.fromEntries(
@@ -23,6 +23,7 @@ export function ItemSheet({ item, data, change, onClose }: Props) {
   );
   const [name, setName] = useState(item.name);
   const [note, setNote] = useState(item.note ?? "");
+  const [amount, setAmount] = useState(item.amount ?? "");
   const [isOneOff, setIsOneOff] = useState(item.is_one_off);
   const [places, setPlaces] = useState<string[]>(initialPlaces);
   const [aisles, setAisles] = useState<Record<string, string>>(initialAisles);
@@ -33,7 +34,13 @@ export function ItemSheet({ item, data, change, onClose }: Props) {
   async function save() {
     if (!name.trim()) return;
     setSaving(true);
-    const fields = { name: name.trim(), note: note.trim() || null, is_one_off: isOneOff };
+    // An amount only means something while we need the item (buying it clears it).
+    const fields = {
+      name: name.trim(),
+      note: note.trim() || null,
+      is_one_off: isOneOff,
+      ...(item.status === "need" && { amount: amount.trim() || null }),
+    };
     const placesChanged = places.length !== initialPlaces.length || places.some((p) => !initialPlaces.includes(p));
     const changedStores = stores.filter((s) => (aisles[s.id] ?? "") !== (initialAisles[s.id] ?? ""));
     const saved = await change(
@@ -84,6 +91,12 @@ export function ItemSheet({ item, data, change, onClose }: Props) {
           <span className={ui.label}>Note</span>
           <input value={note} onChange={(e) => setNote(e.target.value)} placeholder="e.g. the Oatly one, 2 packs" className={ui.input} />
         </label>
+        {item.status === "need" && (
+          <label>
+            <span className={ui.label}>How much this time</span>
+            <input value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="e.g. 600 g" className={ui.input} />
+          </label>
+        )}
         <label className="flex items-center gap-3">
           <input type="checkbox" checked={isOneOff} onChange={(e) => setIsOneOff(e.target.checked)} className="h-5 w-5 accent-brand" />
           <span>

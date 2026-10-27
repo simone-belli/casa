@@ -79,6 +79,14 @@ Scaling is a **temporary view adjustment**: it changes displayed quantities but 
 
 Displayed amounts are rounded sensibly (e.g. whole grams above 10 g, halves and quarters for spoons).
 
+## Buying the ingredients
+
+Under **Ingredients**, a **Buy ingredients** button opens a checklist of the recipe's ingredients for adding them to [Groceries](GROCERIES-SPEC.md):
+
+- Nothing is ticked at first: we tick what we need to buy. Each row says whether it's new to Groceries, already on the list, or one Groceries says we have.
+- Ingredients with a quantity show their amount, scaled as on the recipe screen. The amount is kept for weights and volumes (g, kg, ml, l) and left off for counts and spoons ("eggs", not "3 eggs"); tapping it switches it.
+- **Done** adds the ticked ingredients to the list as needed, with the amounts kept, and offers to open Groceries.
+
 ## Finding recipes
 
 - **Ricettario's home is the menu** ("What shall we eat?"): a button per menu category (Quick, Italian, Asian, Slow cook, BBQ, Starters, Side dishes, Desserts), an **All recipes** button, and a search box. Tapping a button, or searching, opens the matching recipes on their own screen; its back arrow returns to the menu, and a recipe's back arrow returns to the list it was opened from.

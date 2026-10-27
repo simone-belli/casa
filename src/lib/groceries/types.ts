@@ -5,6 +5,8 @@ export type Item = {
   id: string;
   name: string;
   note: string | null;
+  /** How much we need this time, e.g. "600 g"; cleared when bought. */
+  amount: string | null;
   status: ItemStatus;
   is_one_off: boolean;
   needed_by: string | null;
