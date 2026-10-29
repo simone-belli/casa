@@ -3,13 +3,15 @@
 import { useState } from "react";
 import { SafeLink } from "@/components/safe-link";
 import { ui } from "@/components/ui";
-import { addAisle, addStore, remove, rename, reorder } from "@/lib/groceries/db";
-import type { Groceries } from "@/lib/groceries/types";
+import { addAisle, addStore, remove, rename, reorder, setStoreKind } from "@/lib/groceries/db";
+import type { Groceries, Store, StoreKind } from "@/lib/groceries/types";
 import { useDeviceSetting } from "@/lib/device-setting";
 import { useGroceries } from "@/lib/groceries/use-groceries";
+import { isShop } from "@/lib/groceries/views";
 import { ErrorBanner, LoadState } from "../parts";
 import { FileAll } from "./file-all";
 import { ListEditor } from "./list-editor";
+import { ShopItems } from "./shop-items";
 import { SuggestAisles } from "./suggest-aisles";
 
 const byPosition = <T extends { position: number }>(a: T, b: T) => a.position - b.position;
@@ -23,6 +25,7 @@ export function GroceriesSettings() {
   const { data, loadFailed, error, clearError, change } = useGroceries();
   const [showWho, setShowWho] = useDeviceSetting("groceries:showWho", false);
   const [storeName, setStoreName] = useState("");
+  const [newKind, setNewKind] = useState<StoreKind>("supermarket");
   const [copyFrom, setCopyFrom] = useState("");
 
   if (!data) return <LoadState failed={loadFailed} />;
@@ -33,6 +36,17 @@ export function GroceriesSettings() {
   });
 
   const stores = [...data.stores].sort(byPosition);
+  const kindOf = (store: Store): StoreKind => (isShop(store) ? "shop" : "supermarket");
+  const copyable = stores.filter((s) => kindOf(s) === newKind);
+
+  const changeKind = (store: Store, kind: StoreKind) => {
+    const question =
+      kind === "shop"
+        ? `Make “${store.name}” a specialist shop? Its aisles go; everything sorted into an aisle stays sold here, the rest isn't.`
+        : `Make “${store.name}” a supermarket? You can then add its aisles; what it sells starts under one aisle, “Sold here”.`;
+    if (!window.confirm(question)) return;
+    void change(null, () => setStoreKind(store, kind, data));
+  };
 
   return (
     <div className="flex flex-col gap-6 pt-6">
@@ -55,7 +69,7 @@ export function GroceriesSettings() {
             <input
               key={store.name}
               defaultValue={store.name}
-              aria-label="Supermarket name"
+              aria-label={isShop(store) ? "Shop name" : "Supermarket name"}
               onBlur={(e) => {
                 const name = e.target.value.trim();
                 if (!name) e.target.value = store.name;
@@ -68,7 +82,7 @@ export function GroceriesSettings() {
               type="button"
               className={`${ui.danger} min-h-9 px-3 text-sm`}
               onClick={() => {
-                if (!window.confirm(`Delete “${store.name}” and its aisles?`)) return;
+                if (!window.confirm(isShop(store) ? `Delete “${store.name}”?` : `Delete “${store.name}” and its aisles?`)) return;
                 void change(
                   (d) => ({ ...d, stores: d.stores.filter((s) => s.id !== store.id) }),
                   () => remove("grocery_stores", store.id),
@@ -78,26 +92,39 @@ export function GroceriesSettings() {
               Delete
             </button>
           </div>
-          <p className="-mt-2 text-sm text-muted">Aisles in walking order.</p>
-          <ListEditor
-            rows={data.aisles.filter((a) => a.store_id === store.id).sort(byPosition)}
-            noun="aisle"
-            onAdd={(name) => void change(null, () => addAisle(store.id, name, data.aisles))}
-            onRename={(id, name) => void change(renameIn("aisles", id, name), () => rename("grocery_aisles", id, name))}
-            onReorder={(ids) => void change((d) => ({ ...d, aisles: inOrder(d.aisles, ids) }), () => reorder("grocery_aisles", ids))}
-            onDelete={(aisle) => {
-              if (!window.confirm(`Delete “${aisle.name}”? Its items go back to “Not sorted yet” here.`)) return;
-              void change(
-                (d) => ({ ...d, aisles: d.aisles.filter((a) => a.id !== aisle.id), itemAisles: d.itemAisles.filter((f) => f.aisle_id !== aisle.id) }),
-                () => remove("grocery_aisles", aisle.id),
-              );
-            }}
-          />
-          <SuggestAisles store={store} data={data} />
-          <FileAll store={store} data={data} change={change} />
+          <label className="-mt-1 flex items-center justify-between gap-3 text-sm">
+            <span className="text-muted">Kind</span>
+            <select value={kindOf(store)} onChange={(e) => changeKind(store, e.target.value as StoreKind)} className={`${ui.input} w-auto`}>
+              <option value="supermarket">Supermarket, with aisles</option>
+              <option value="shop">Specialist shop, no aisles</option>
+            </select>
+          </label>
+          {isShop(store) ? (
+            <ShopItems store={store} data={data} change={change} />
+          ) : (
+            <>
+              <p className="-mt-1 text-sm text-muted">Aisles in walking order.</p>
+              <ListEditor
+                rows={data.aisles.filter((a) => a.store_id === store.id).sort(byPosition)}
+                noun="aisle"
+                onAdd={(name) => void change(null, () => addAisle(store.id, name, data.aisles))}
+                onRename={(id, name) => void change(renameIn("aisles", id, name), () => rename("grocery_aisles", id, name))}
+                onReorder={(ids) => void change((d) => ({ ...d, aisles: inOrder(d.aisles, ids) }), () => reorder("grocery_aisles", ids))}
+                onDelete={(aisle) => {
+                  if (!window.confirm(`Delete “${aisle.name}”? Its items go back to “Not sorted yet” here.`)) return;
+                  void change(
+                    (d) => ({ ...d, aisles: d.aisles.filter((a) => a.id !== aisle.id), itemAisles: d.itemAisles.filter((f) => f.aisle_id !== aisle.id) }),
+                    () => remove("grocery_aisles", aisle.id),
+                  );
+                }}
+              />
+              <SuggestAisles store={store} data={data} />
+              <FileAll store={store} data={data} change={change} />
+            </>
+          )}
           {stores.length > 1 && (
             <div className="flex justify-end gap-1 text-sm">
-              <span className="self-center text-muted">Move supermarket</span>
+              <span className="self-center text-muted">Move {isShop(store) ? "shop" : "supermarket"}</span>
               {([-1, 1] as const).map((by) => {
                 const index = stores.indexOf(store);
                 const target = index + by;
@@ -131,26 +158,55 @@ export function GroceriesSettings() {
           const name = storeName.trim();
           setStoreName("");
           setCopyFrom("");
-          void change(null, () => addStore(name, data, copyFrom || undefined));
+          void change(null, () => addStore(name, newKind, data, copyable.some((s) => s.id === copyFrom) ? copyFrom : undefined));
         }}
       >
-        <h2 className="font-display text-xl">Add a supermarket</h2>
-        <input value={storeName} onChange={(e) => setStoreName(e.target.value)} placeholder="Name, e.g. Tesco Express" className={ui.input} />
-        {stores.length > 0 && (
+        <h2 className="font-display text-xl">Add a shop</h2>
+        <div className="flex rounded-full border border-line bg-surface p-0.5 text-sm font-semibold" role="group" aria-label="Kind of shop">
+          {[
+            { value: "supermarket" as const, label: "Supermarket" },
+            { value: "shop" as const, label: "Specialist shop" },
+          ].map((option) => (
+            <button
+              key={option.value}
+              type="button"
+              aria-pressed={newKind === option.value}
+              onClick={() => {
+                setNewKind(option.value);
+                setCopyFrom("");
+              }}
+              className={`flex-1 rounded-full px-3 py-1.5 ${newKind === option.value ? "bg-brand text-brand-ink" : "text-muted"}`}
+            >
+              {option.label}
+            </button>
+          ))}
+        </div>
+        <p className="-mt-1 text-sm text-muted">
+          {newKind === "shop"
+            ? "A chemist, a hardware store…: no aisles, just the few things you buy there. New items start as not sold here."
+            : "With its aisles in walking order."}
+        </p>
+        <input
+          value={storeName}
+          onChange={(e) => setStoreName(e.target.value)}
+          placeholder={newKind === "shop" ? "Name, e.g. Chemist Warehouse" : "Name, e.g. Tesco Express"}
+          className={ui.input}
+        />
+        {copyable.length > 0 && (
           <label>
             <span className={ui.label}>Start from</span>
             <select value={copyFrom} onChange={(e) => setCopyFrom(e.target.value)} className={ui.input}>
-              <option value="">Empty</option>
-              {stores.map((s) => (
+              <option value="">{newKind === "shop" ? "Nothing sold yet" : "Empty"}</option>
+              {copyable.map((s) => (
                 <option key={s.id} value={s.id}>
-                  A copy of {s.name}&apos;s aisles and sorting
+                  {newKind === "shop" ? `A copy of what ${s.name} sells` : `A copy of ${s.name}'s aisles and sorting`}
                 </option>
               ))}
             </select>
           </label>
         )}
         <button type="submit" disabled={!storeName.trim()} className={ui.primary}>
-          Add supermarket
+          {newKind === "shop" ? "Add shop" : "Add supermarket"}
         </button>
       </form>
 

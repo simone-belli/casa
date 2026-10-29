@@ -2,6 +2,7 @@
 
 import { ui } from "@/components/ui";
 import { HOME_PLACES, NOT_SOLD, type Groceries, type Place } from "@/lib/groceries/types";
+import { isShop, shopAisle } from "@/lib/groceries/views";
 
 /** A save error, dismissed with a tap. */
 export function ErrorBanner({ error, onDismiss }: { error: string | null; onDismiss: () => void }) {
@@ -101,7 +102,8 @@ export function PlacesPicker({ places, value, onChange }: { places: Place[]; val
 
 /**
  * Pick an item's aisle in each supermarket: store id → aisle id, NOT_SOLD,
- * or "" for not sorted yet.
+ * or "" for not sorted yet. A specialist shop only has sold or not sold
+ * (its hidden aisle's id, or NOT_SOLD, which "" also means there).
  */
 export function AislesPicker({
   data,
@@ -115,28 +117,34 @@ export function AislesPicker({
   if (data.stores.length === 0) return null;
   return (
     <fieldset className="flex flex-col gap-3">
-      <legend className={ui.label}>Aisle</legend>
-      {[...data.stores].sort(byPosition).map((store) => (
-        <label key={store.id} className="flex items-center justify-between gap-3">
-          <span className="min-w-0 truncate">{store.name}</span>
-          <select
-            value={value[store.id] ?? ""}
-            onChange={(e) => onChange({ ...value, [store.id]: e.target.value })}
-            className={`${ui.input} w-auto max-w-[60%]`}
-          >
-            <option value="">Not sorted yet</option>
-            <option value={NOT_SOLD}>Not sold here</option>
-            {data.aisles
-              .filter((a) => a.store_id === store.id)
-              .sort(byPosition)
-              .map((a) => (
-                <option key={a.id} value={a.id}>
-                  {a.name}
-                </option>
-              ))}
-          </select>
-        </label>
-      ))}
+      <legend className={ui.label}>In the shops</legend>
+      {[...data.stores].sort(byPosition).map((store) => {
+        const shop = isShop(store);
+        const soldHere = shop ? shopAisle(data, store.id) : undefined;
+        return (
+          <label key={store.id} className="flex items-center justify-between gap-3">
+            <span className="min-w-0 truncate">{store.name}</span>
+            <select
+              value={value[store.id] || (shop ? NOT_SOLD : "")}
+              onChange={(e) => onChange({ ...value, [store.id]: e.target.value })}
+              className={`${ui.input} w-auto max-w-[60%]`}
+            >
+              {!shop && <option value="">Not sorted yet</option>}
+              <option value={NOT_SOLD}>Not sold here</option>
+              {soldHere && <option value={soldHere.id}>Sold here</option>}
+              {!shop &&
+                data.aisles
+                  .filter((a) => a.store_id === store.id)
+                  .sort(byPosition)
+                  .map((a) => (
+                    <option key={a.id} value={a.id}>
+                      {a.name}
+                    </option>
+                  ))}
+            </select>
+          </label>
+        );
+      })}
     </fieldset>
   );
 }

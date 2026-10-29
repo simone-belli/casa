@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { EMPTY_GROCERIES, type Groceries, type Item } from "../types";
-import { fileAllRows, homeGroups, matchItems, pastedChunks, pastedLines, sameName, shopView } from "../views";
+import { EMPTY_GROCERIES, NOT_SOLD, type Groceries, type Item } from "../types";
+import { fileAllRows, filingChoice, homeGroups, matchItems, pastedChunks, pastedLines, sameName, shopView } from "../views";
 
 const item = (id: string, name: string, status: Item["status"] = "have", is_one_off = false): Item => ({
   id,
@@ -102,6 +102,47 @@ describe("shopView", () => {
     const view = shopView(data, "lidl");
     expect(names(view.unsorted)).toEqual(["Apples", "Milk", "Sponges"]);
     expect(view.aisles).toEqual([]);
+  });
+});
+
+/** The test data plus a chemist (a specialist shop) that sells only sponges. */
+const withChemist: Groceries = {
+  ...data,
+  stores: [...data.stores, { id: "chemist", name: "Chemist", position: 1, kind: "shop" }],
+  aisles: [...data.aisles, { id: "chemist-sold", store_id: "chemist", name: "Sold here", position: 0 }],
+  itemAisles: [
+    ...data.itemAisles,
+    { item_id: "sponge", store_id: "chemist", aisle_id: "chemist-sold" },
+    { item_id: "milk", store_id: "chemist", aisle_id: null },
+  ],
+};
+
+describe("shopView at a specialist shop", () => {
+  it("lists what it sells in one list, and everything else, filed or not, as not sold", () => {
+    const view = shopView(withChemist, "chemist");
+    expect(view.aisles.map((a) => [a.aisle.id, names(a.items)])).toEqual([["chemist-sold", ["Sponges"]]]);
+    expect(names(view.unsorted)).toEqual([]);
+    expect(names(view.notSold)).toEqual(["Apples", "Milk"]);
+    expect(names(view.oneOffs)).toEqual(["Birthday candles"]);
+  });
+
+  it("leaves supermarkets as they were", () => {
+    expect(shopView(withChemist, "tesco")).toEqual(shopView(data, "tesco"));
+  });
+});
+
+describe("filingChoice", () => {
+  it("gives a supermarket's aisle, not sold, or not sorted yet", () => {
+    const d = { ...withChemist, itemAisles: [...withChemist.itemAisles, { item_id: "eggs", store_id: "tesco", aisle_id: null }] };
+    expect(filingChoice(d, "milk", "tesco")).toBe("dairy");
+    expect(filingChoice(d, "eggs", "tesco")).toBe(NOT_SOLD);
+    expect(filingChoice(d, "bin", "tesco")).toBe("");
+  });
+
+  it("gives a specialist shop's aisle when sold there, and not sold otherwise, new items included", () => {
+    expect(filingChoice(withChemist, "sponge", "chemist")).toBe("chemist-sold");
+    expect(filingChoice(withChemist, "milk", "chemist")).toBe(NOT_SOLD);
+    expect(filingChoice(withChemist, "bin", "chemist")).toBe(NOT_SOLD);
   });
 });
 

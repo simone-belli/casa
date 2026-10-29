@@ -12,7 +12,7 @@ home life. Specs live in [`docs/`](docs):
 |---|---|
 | **Ricettario** (recipes) | v0: add by typing/dictation, photo or link; menu filters (quick, Italian, Asian…, vegetarian, in season); scaling; editing; buy ingredients into Groceries; live sync |
 | **Agenda** (calendar and tasks) | v0: calendar and tasks views, proposals, recurring items, weekly nudge, quick add with Claude, two-way Google Calendar sync; live sync |
-| **Groceries** (shopping list) | v1: home and shopping views, quick add, one-offs, supermarkets and aisles, paste import; live sync |
+| **Groceries** (shopping list) | v1: home and shopping views, quick add, one-offs, supermarkets and aisles, specialist shops, paste import; live sync |
 
 Casa is deployed on Vercel at `https://casa-pi-weld.vercel.app` and works from
 anywhere over HTTPS. It can also be run on a computer for development.
@@ -42,10 +42,11 @@ from the server.
    [`0008_bug_reports.sql`](supabase/migrations/0008_bug_reports.sql) for the
    *Report a bug* screen and [`0009_seasons.sql`](supabase/migrations/0009_seasons.sql)
    for Ricettario's seasons, then [`0010_grocery_amounts.sql`](supabase/migrations/0010_grocery_amounts.sql)
-   for buying a recipe's ingredients.
+   for buying a recipe's ingredients and [`0011_specialist_shops.sql`](supabase/migrations/0011_specialist_shops.sql)
+   for Groceries' specialist shops.
 
    **Already set up?** Run, in order, whichever of these you haven't run yet.
-   `0003`, `0005`, `0007`, `0008`, `0009` and `0010` are safe to run again; if Groceries says the home places
+   `0003`, `0005`, `0007`, `0008`, `0009`, `0010` and `0011` are safe to run again; if Groceries says the home places
    aren't set up, run `0003`.
 3. Still in the SQL Editor, add the two of you (lower-case emails):
 

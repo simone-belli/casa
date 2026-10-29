@@ -5,6 +5,7 @@ import { ui } from "@/components/ui";
 import { deleteItem, fileItem, setItemPlaces, updateItem } from "@/lib/groceries/db";
 import { NOT_SOLD, type Groceries, type Item } from "@/lib/groceries/types";
 import type { useGroceries } from "@/lib/groceries/use-groceries";
+import { filingChoice } from "@/lib/groceries/views";
 import { AislesPicker, PlacesPicker } from "./parts";
 
 type Props = {
@@ -19,9 +20,7 @@ const byPosition = <T extends { position: number }>(a: T, b: T) => a.position - 
 /** Edit an item: name, note, amount needed, one-off, home places and its aisle in each supermarket. */
 export function ItemSheet({ item, data, change, onClose }: Props) {
   const initialPlaces = data.itemPlaces.filter((p) => p.item_id === item.id).map((p) => p.place_id);
-  const initialAisles = Object.fromEntries(
-    data.itemAisles.filter((f) => f.item_id === item.id).map((f) => [f.store_id, f.aisle_id ?? NOT_SOLD]),
-  );
+  const initialAisles = Object.fromEntries(data.stores.map((s) => [s.id, filingChoice(data, item.id, s.id)]));
   const [name, setName] = useState(item.name);
   const [note, setNote] = useState(item.note ?? "");
   const [amount, setAmount] = useState(item.amount ?? "");

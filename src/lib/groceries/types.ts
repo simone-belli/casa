@@ -21,7 +21,16 @@ export const HOME_PLACES = ["Fruit", "Fridge", "Freezer", "Pantry", "Bathroom", 
 export const OTHER_PLACE = "Other";
 
 export type Place = { id: string; name: string; position: number };
-export type Store = { id: string; name: string; position: number };
+/**
+ * A supermarket has aisles in walking order. A specialist shop (a chemist, a
+ * hardware store) has none: an item is either sold there or not, and new
+ * items start as not sold.
+ */
+export const STORE_KINDS = ["supermarket", "shop"] as const;
+export type StoreKind = (typeof STORE_KINDS)[number];
+
+/** `kind` is missing until migration 0011 has been run; treat that as a supermarket. */
+export type Store = { id: string; name: string; position: number; kind?: StoreKind };
 export type Aisle = { id: string; store_id: string; name: string; position: number };
 
 export type ItemPlace = { item_id: string; place_id: string };
@@ -30,6 +39,12 @@ export type ItemAisle = { item_id: string; store_id: string; aisle_id: string | 
 
 /** Choice for an item that a supermarket doesn't sell (stored as a filing with no aisle). */
 export const NOT_SOLD = "not-sold";
+
+/**
+ * The one aisle a specialist shop has, out of sight: items filed under it are
+ * sold there, and any other item (filed with no aisle, or not at all) isn't.
+ */
+export const SHOP_AISLE_NAME = "Sold here";
 
 /** Everything in the Groceries section, loaded in one go (it's small). */
 export type Groceries = {

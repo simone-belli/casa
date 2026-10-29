@@ -29,7 +29,8 @@ export async function POST(request: Request): Promise<NextResponse<AislesRespons
   const db = member.supabase;
 
   const [store, aisles, items, filed] = await Promise.all([
-    db.from("grocery_stores").select("name").eq("id", storeId).maybeSingle(),
+    // "*" so this works before migration 0011 adds `kind`.
+    db.from("grocery_stores").select("*").eq("id", storeId).maybeSingle(),
     db.from("grocery_aisles").select("id, name, position").eq("store_id", storeId).order("position"),
     db.from("grocery_items").select("id, name").eq("is_one_off", false),
     db.from("grocery_item_aisles").select("item_id").eq("store_id", storeId),
@@ -38,6 +39,9 @@ export async function POST(request: Request): Promise<NextResponse<AislesRespons
     return NextResponse.json({ error: "Couldn't load the list. Please try again." }, { status: 502 });
   }
   if (!store.data) return NextResponse.json({ error: "That supermarket no longer exists." }, { status: 404 });
+  if (store.data.kind === "shop") {
+    return NextResponse.json({ error: `${store.data.name} is a specialist shop, without aisles.` }, { status: 400 });
+  }
   if (aisles.data.length === 0) {
     return NextResponse.json({ error: `Add ${store.data.name}'s aisles first.` }, { status: 400 });
   }

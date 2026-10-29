@@ -2,7 +2,19 @@
 
 import { supabaseBrowser } from "@/lib/supabase/client";
 import { uid } from "@/lib/uid";
-import { NOT_SOLD, type Aisle, type Groceries, type Item, type ItemAisle, type ItemPlace, type ItemStatus, type Place, type Store } from "./types";
+import {
+  NOT_SOLD,
+  SHOP_AISLE_NAME,
+  type Aisle,
+  type Groceries,
+  type Item,
+  type ItemAisle,
+  type ItemPlace,
+  type ItemStatus,
+  type Place,
+  type Store,
+  type StoreKind,
+} from "./types";
 
 const TABLES = [
   "grocery_items",
@@ -47,7 +59,8 @@ export async function loadGroceries(): Promise<Groceries> {
   const [items, places, stores, aisles, itemPlaces, itemAisles] = await Promise.all([
     selectAll<Item>("grocery_items", "*", ["id"]),
     selectAll<Place>("grocery_places", "id, name, position", ["id"]),
-    selectAll<Store>("grocery_stores", "id, name, position", ["id"]),
+    // "*" rather than naming `kind`, so the list still loads before migration 0011.
+    selectAll<Store>("grocery_stores", "*", ["id"]),
     selectAll<Aisle>("grocery_aisles", "id, store_id, name, position", ["id"]),
     selectAll<ItemPlace>("grocery_item_places", "item_id, place_id", ["item_id", "place_id"]),
     selectAll<ItemAisle>("grocery_item_aisles", "item_id, store_id, aisle_id", ["item_id", "store_id"]),
@@ -161,14 +174,20 @@ export async function reorder(table: Listed, ids: string[]): Promise<void> {
 }
 
 /**
- * Adds a supermarket, empty or as a copy of another one's aisles and filings.
- * Returns the new supermarket's id.
+ * Adds a supermarket or specialist shop, empty or as a copy of another one's
+ * aisles and filings. An empty shop gets its hidden aisle, so nothing is sold
+ * there until it's added. Returns the new store's id.
  */
-export async function addStore(name: string, data: Groceries, copyFrom?: string): Promise<string> {
+export async function addStore(name: string, kind: StoreKind, data: Groceries, copyFrom?: string): Promise<string> {
   const db = supabaseBrowser();
   const storeId = uid();
-  check((await db.from("grocery_stores").insert({ id: storeId, name: name.trim(), position: nextPosition(data.stores) })).error);
-  if (!copyFrom) return storeId;
+  const store: Store = { id: storeId, name: name.trim(), position: nextPosition(data.stores) };
+  // Before migration 0011 there's no `kind`; a supermarket can still be added.
+  check((await db.from("grocery_stores").insert(kind === "shop" ? { ...store, kind } : store)).error);
+  if (!copyFrom) {
+    if (kind === "shop") check((await db.from("grocery_aisles").insert({ store_id: storeId, name: SHOP_AISLE_NAME, position: 0 })).error);
+    return storeId;
+  }
 
   const newAisleId = new Map<string, string>();
   const aisles = data.aisles
@@ -184,6 +203,34 @@ export async function addStore(name: string, data: Groceries, copyFrom?: string)
     .map((f) => ({ item_id: f.item_id, store_id: storeId, aisle_id: f.aisle_id && newAisleId.get(f.aisle_id)! }));
   if (filings.length > 0) check((await db.from("grocery_item_aisles").insert(filings)).error);
   return storeId;
+}
+
+/**
+ * Turns a supermarket into a specialist shop or back. As a shop, everything
+ * filed under an aisle stays sold there (under the one hidden aisle) and the
+ * other aisles go; the rest isn't sold there. Back as a supermarket, the
+ * hidden aisle becomes an ordinary one and items not sold stay not sold.
+ */
+export async function setStoreKind(store: Store, kind: StoreKind, data: Groceries): Promise<void> {
+  const db = supabaseBrowser();
+  const aisles = data.aisles.filter((a) => a.store_id === store.id);
+  if (kind === "shop") {
+    const aisleId = uid();
+    check((await db.from("grocery_aisles").insert({ id: aisleId, store_id: store.id, name: SHOP_AISLE_NAME, position: 0 })).error);
+    check(
+      (await db.from("grocery_item_aisles").update({ aisle_id: aisleId }).eq("store_id", store.id).not("aisle_id", "is", null)).error,
+    );
+    if (aisles.length > 0) {
+      check((await db.from("grocery_aisles").delete().in("id", aisles.map((a) => a.id))).error);
+    }
+  } else {
+    const filed = new Set(data.itemAisles.filter((f) => f.store_id === store.id).map((f) => f.item_id));
+    await fileItems(
+      data.items.filter((i) => !i.is_one_off && !filed.has(i.id)).map((i) => ({ item_id: i.id, store_id: store.id, aisle_id: null })),
+      false,
+    );
+  }
+  check((await db.from("grocery_stores").update({ kind }).eq("id", store.id)).error);
 }
 
 // --- Import -----------------------------------------------------------------

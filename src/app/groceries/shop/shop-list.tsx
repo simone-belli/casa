@@ -7,7 +7,7 @@ import { createItem, deleteItem, fileItem, setStatus, updateItem } from "@/lib/g
 import { NOT_SOLD, type Item } from "@/lib/groceries/types";
 import { useDeviceSetting } from "@/lib/device-setting";
 import { useGroceries } from "@/lib/groceries/use-groceries";
-import { itemDetail, shopView } from "@/lib/groceries/views";
+import { isShop, itemDetail, shopAisle, shopView } from "@/lib/groceries/views";
 import { useHousehold } from "@/lib/household";
 import { ItemSheet } from "../item-sheet";
 import { EditButton, ErrorBanner, GroupTitle, LoadState, Tick } from "../parts";
@@ -43,6 +43,8 @@ export function ShopList() {
 
   const store = stores.find((s) => s.id === storeId) ?? stores[0];
   const view = shopView(data, store.id);
+  // A specialist shop has one list; what it sells is filed under its hidden aisle.
+  const soldHere = isShop(store) ? shopAisle(data, store.id) : undefined;
   const storeAisles = data.aisles.filter((a) => a.store_id === store.id).sort((a, b) => a.position - b.position);
   const inTrolley = trolley.filter((t) => data.items.find((i) => i.id === t.id)?.status !== "need");
   const nothingToBuy = view.oneOffs.length + view.unsorted.length + view.aisles.length === 0;
@@ -76,13 +78,16 @@ export function ShopList() {
     );
   };
 
-  const file = (item: Item, choice: string) =>
+  const file = (itemId: string, choice: string) =>
     void change(
       (d) => ({
         ...d,
-        itemAisles: [...d.itemAisles, { item_id: item.id, store_id: store.id, aisle_id: choice === NOT_SOLD ? null : choice }],
+        itemAisles: [
+          ...d.itemAisles.filter((f) => f.item_id !== itemId || f.store_id !== store.id),
+          { item_id: itemId, store_id: store.id, aisle_id: choice === NOT_SOLD ? null : choice },
+        ],
       }),
-      () => fileItem(item.id, store.id, choice),
+      () => fileItem(itemId, store.id, choice),
     );
 
   const row = (item: Item, sortable = false) => {
@@ -108,7 +113,7 @@ export function ShopList() {
         {sortable && (
           <select
             value=""
-            onChange={(e) => e.target.value && file(item, e.target.value)}
+            onChange={(e) => e.target.value && file(item.id, e.target.value)}
             aria-label={`Aisle for ${item.name}`}
             className="mx-4 mb-2 -mt-1 rounded-lg border border-dashed border-line bg-bg px-2 py-1.5 text-sm text-muted"
           >
@@ -136,7 +141,7 @@ export function ShopList() {
 
   return (
     <div className="flex flex-col gap-4 pt-4">
-      <div className="-mx-4 flex gap-2 overflow-x-auto px-4" role="group" aria-label="Supermarket">
+      <div className="-mx-4 flex gap-2 overflow-x-auto px-4" role="group" aria-label="Shop">
         {stores.map((s) => (
           <button
             key={s.id}
@@ -152,7 +157,8 @@ export function ShopList() {
         ))}
       </div>
 
-      <QuickAdd data={data} change={change} me={me} />
+      {/* Something new added while in a specialist shop is sold there. */}
+      <QuickAdd data={data} change={change} me={me} onCreated={soldHere && ((id) => file(id, soldHere.id))} />
       <ErrorBanner error={error} onDismiss={clearError} />
 
       {nothingToBuy && inTrolley.length === 0 && <p className="py-10 text-center text-muted">Nothing to buy. 🎉</p>}
@@ -169,9 +175,27 @@ export function ShopList() {
           )}
         </>
       )}
-      {view.aisles.map(({ aisle, items }) => group(aisle.id, aisle.name, items))}
+      {view.aisles.map(({ aisle, items }) => group(aisle.id, soldHere ? "To buy" : aisle.name, items))}
 
-      {view.notSold.length > 0 && (
+      {soldHere && view.notSold.length > 0 && (
+        <div className="flex flex-col gap-2 px-1">
+          <p className="text-sm text-muted">Not sold at {store.name}. Tap any that are, to buy it here from now on:</p>
+          <ul className="flex flex-wrap gap-2">
+            {view.notSold.map((i) => (
+              <li key={i.id}>
+                <button
+                  type="button"
+                  onClick={() => file(i.id, soldHere.id)}
+                  className="rounded-full border border-dashed border-line bg-surface px-3 py-1.5 text-sm text-muted active:bg-bg"
+                >
+                  + {i.name}
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+      {!soldHere && view.notSold.length > 0 && (
         <p className="px-1 text-sm text-muted">
           Not sold at {store.name}: {view.notSold.map((i) => i.name).join(", ")}.
         </p>

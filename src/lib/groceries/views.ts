@@ -1,5 +1,5 @@
 import { normalise } from "@/lib/recipes/search";
-import { OTHER_PLACE, type Aisle, type Groceries, type Item, type ItemAisle } from "./types";
+import { NOT_SOLD, OTHER_PLACE, type Aisle, type Groceries, type Item, type ItemAisle, type Store } from "./types";
 
 export type Group = { key: string; title: string; items: Item[] };
 
@@ -36,6 +36,28 @@ export function homeGroups(data: Groceries, onlyNeeded: boolean): Group[] {
   return groups.filter((g) => g.items.length > 0 || (!onlyNeeded && g.key !== "one-offs" && g.key !== "other"));
 }
 
+/** Whether the store is a specialist shop (no aisles; new items aren't sold there). */
+export const isShop = (store: Store | undefined) => store?.kind === "shop";
+
+/** The hidden aisle of a specialist shop that holds what it sells, if it has one. */
+export function shopAisle(data: Pick<Groceries, "aisles">, storeId: string): Aisle | undefined {
+  return data.aisles.filter((a) => a.store_id === storeId).sort(byPosition)[0];
+}
+
+/**
+ * The item's choice at a store for a picker: an aisle id, NOT_SOLD, or "" for
+ * not sorted yet. A specialist shop has no "not sorted yet": anything not
+ * filed under its aisle isn't sold there.
+ */
+export function filingChoice(data: Pick<Groceries, "stores" | "aisles" | "itemAisles">, itemId: string, storeId: string): string {
+  const filing = data.itemAisles.find((f) => f.item_id === itemId && f.store_id === storeId);
+  if (isShop(data.stores.find((s) => s.id === storeId))) {
+    const aisle = shopAisle(data, storeId);
+    return aisle && filing?.aisle_id === aisle.id ? aisle.id : NOT_SOLD;
+  }
+  return filing ? (filing.aisle_id ?? NOT_SOLD) : "";
+}
+
 export type ShopView = {
   oneOffs: Item[];
   unsorted: Item[];
@@ -44,14 +66,20 @@ export type ShopView = {
   notSold: Item[];
 };
 
-/** The shop view: only items we need, by the supermarket's aisles in walking order. */
+/**
+ * The shop view: only items we need, by the supermarket's aisles in walking
+ * order. A specialist shop has a single list, and items not filed there count
+ * as not sold.
+ */
 export function shopView(data: Groceries, storeId: string): ShopView {
   const needed = data.items.filter((i) => i.status === "need").sort(byName);
-  const aisles = data.aisles.filter((a) => a.store_id === storeId).sort(byPosition);
+  const shop = isShop(data.stores.find((s) => s.id === storeId));
+  const aisles = shop ? [shopAisle(data, storeId)].filter((a) => a !== undefined) : data.aisles.filter((a) => a.store_id === storeId).sort(byPosition);
   const aisleIds = new Set(aisles.map((a) => a.id));
   const filings = data.itemAisles.filter((f) => f.store_id === storeId);
   const aisleOf = new Map(filings.filter((f) => f.aisle_id && aisleIds.has(f.aisle_id)).map((f) => [f.item_id, f.aisle_id]));
   const notSold = new Set(filings.filter((f) => f.aisle_id === null).map((f) => f.item_id));
+  if (shop) for (const i of needed) if (!aisleOf.has(i.id)) notSold.add(i.id);
   return {
     oneOffs: needed.filter((i) => i.is_one_off),
     notSold: needed.filter((i) => !i.is_one_off && notSold.has(i.id)),
