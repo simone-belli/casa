@@ -177,30 +177,6 @@ export function ShopList() {
       )}
       {view.aisles.map(({ aisle, items }) => group(aisle.id, soldHere ? "To buy" : aisle.name, items))}
 
-      {soldHere && view.notSold.length > 0 && (
-        <div className="flex flex-col gap-2 px-1">
-          <p className="text-sm text-muted">Not sold at {store.name}. Tap any that are, to buy it here from now on:</p>
-          <ul className="flex flex-wrap gap-2">
-            {view.notSold.map((i) => (
-              <li key={i.id}>
-                <button
-                  type="button"
-                  onClick={() => file(i.id, soldHere.id)}
-                  className="rounded-full border border-dashed border-line bg-surface px-3 py-1.5 text-sm text-muted active:bg-bg"
-                >
-                  + {i.name}
-                </button>
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
-      {!soldHere && view.notSold.length > 0 && (
-        <p className="px-1 text-sm text-muted">
-          Not sold at {store.name}: {view.notSold.map((i) => i.name).join(", ")}.
-        </p>
-      )}
-
       {inTrolley.length > 0 && (
         <section>
           <GroupTitle count={inTrolley.length}>In the trolley</GroupTitle>

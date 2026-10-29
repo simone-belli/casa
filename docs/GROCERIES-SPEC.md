@@ -21,7 +21,7 @@ Same as the rest of Casa: two users, one shared list, live updates, mobile-first
 - **Home place**: where an item lives at home. The places are fixed, in this order: **Fruit, Fridge, Freezer, Pantry, Bathroom, Clean & wash, Other**. An item can be in **one or more** home places, or none (it then shows under Other).
 - **Supermarket**: a shop we use (three regularly). Each one has an ordered list of **aisles** in walking order (Fruit & veg → Bakery → Meat → …), which we can edit and reorder.
 - **Specialist shop**: a shop that sells only a few of our things (a chemist, a hardware store like Bunnings, a wine shop). It has **no aisles**: each item is either **sold here** or **not sold here**, and **every item starts as not sold here**, including items added later. So setting one up is just picking the few things we buy there.
-- **Filing**: for each supermarket, each item can be filed under **one** aisle of that shop, or marked **Not sold here**. Items not sold at a supermarket are left out of its shopping list (a short note at the bottom names any that are needed, so they can be bought elsewhere). At a specialist shop, filing is just sold or not sold.
+- **Filing**: for each supermarket, each item can be filed under **one** aisle of that shop, or marked **Not sold here**. Items not sold at a supermarket are left out of its shopping list. At a specialist shop, filing is just sold or not sold.
 - **One-off**: an item we need just this once (e.g. "birthday candles"). It is deleted once bought.
 
 ## Home view (taking stock)
@@ -42,7 +42,7 @@ Same as the rest of Casa: two users, one shared list, live updates, mobile-first
   - On the phone that ticked it, the item stays greyed out at the bottom under **In the trolley** until the shop view is left, so a mistaken tap can be undone with another tap.
   - On the other person's phone it just disappears from the list, live. If we split up in the shop, neither of us picks up something the other already has.
 - Quick add works here too, for things remembered mid-trip.
-- **At a specialist shop** there are no aisles and no **Not sorted yet**: what we need that's sold there is in one **To buy** list. Needed items not sold there are listed underneath; tapping one marks it as sold there from now on. A new item added by quick add while in a specialist shop is marked as sold there.
+- **At a specialist shop** there are no aisles and no **Not sorted yet**: what we need that's sold there is in one **To buy** list. Needed items not sold there are left out. A new item added by quick add while in a specialist shop is marked as sold there.
 
 ## Quick add
 
