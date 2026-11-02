@@ -6,6 +6,7 @@ import { useSearchParams } from "next/navigation";
 import { useSafeRouter } from "@/lib/navigation";
 import { useState } from "react";
 import { ui } from "@/components/ui";
+import { clearSavedCopies } from "@/lib/saved-copy";
 import { supabaseBrowser } from "@/lib/supabase/client";
 
 /**
@@ -60,6 +61,7 @@ export function LoginForm() {
       setError("That code didn't work. Check it, or send a new email.");
       return;
     }
+    clearSavedCopies();
     router.replace("/");
     router.refresh();
   }

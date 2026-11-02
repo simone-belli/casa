@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { DEFAULT_HOT_MONTHS } from "@/lib/recipes/menu";
+import { readSavedCopy, writeSavedCopy } from "@/lib/saved-copy";
 import { supabaseBrowser } from "@/lib/supabase/client";
 
 export type HouseholdSettings = { default_adults: number; default_children: number };
@@ -64,11 +65,20 @@ export function useHousehold() {
 
   useEffect(() => {
     let cancelled = false;
+    // Show what was here last time straight away; the load below replaces it.
+    const saved = readSavedCopy<{ members: Member[]; me: string | null }>("household");
+    if (saved) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- localStorage only exists in the browser
+      setMembers(saved.members);
+      setMe(saved.me);
+    }
     void Promise.all([loadMembers(), supabaseBrowser().auth.getUser()])
       .then(([list, { data }]) => {
         if (cancelled) return;
-        setMembers(list);
-        setMe(data.user?.id ?? null);
+        const fresh = { members: list, me: data.user?.id ?? null };
+        setMembers(fresh.members);
+        setMe(fresh.me);
+        writeSavedCopy("household", fresh);
       })
       .catch(() => {});
     return () => {

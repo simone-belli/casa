@@ -6,6 +6,7 @@ import { Stepper } from "@/components/stepper";
 import { ui } from "@/components/ui";
 import { type HouseholdSettings, loadSettings, saveSettings, useHousehold } from "@/lib/household";
 import { portionsFor } from "@/lib/recipes/scaling";
+import { clearSavedCopies } from "@/lib/saved-copy";
 import { supabaseBrowser } from "@/lib/supabase/client";
 
 export function SettingsForm() {
@@ -31,6 +32,7 @@ export function SettingsForm() {
 
   async function signOut() {
     await supabaseBrowser().auth.signOut();
+    clearSavedCopies();
     router.replace("/login");
     router.refresh();
   }

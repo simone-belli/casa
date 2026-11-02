@@ -5,6 +5,7 @@ import { useHousehold } from "@/lib/household";
 import { loadAgenda, loadMySettings, saveMySettings, watchAgenda } from "./db";
 import { deviceTimeZone, todayIn } from "./time";
 import type { Agenda, AgendaSettings } from "./types";
+import { readSavedCopy, writeSavedCopy } from "@/lib/saved-copy";
 import type { Viewer } from "./views";
 
 /** How long to wait for a burst of live changes to settle before reloading. */
@@ -48,6 +49,7 @@ export function useAgenda() {
           if (saving.current > 0) return;
           setData(next);
           setLoadFailed(false);
+          writeSavedCopy("agenda", next);
         },
         () => setLoadFailed(true),
       );
@@ -55,6 +57,10 @@ export function useAgenda() {
   }, []);
 
   useEffect(() => {
+    // Show what was here last time straight away; the load below replaces it.
+    const saved = readSavedCopy<Agenda>("agenda");
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- localStorage only exists in the browser
+    if (saved) setData((current) => current ?? saved);
     reload();
     // A safety net in case a change notification from Google was missed.
     requestSync(0);

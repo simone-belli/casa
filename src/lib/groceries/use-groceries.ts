@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { DuplicateNameError, loadGroceries, watchGroceries } from "./db";
 import type { Groceries } from "./types";
+import { readSavedCopy, writeSavedCopy } from "@/lib/saved-copy";
 
 /** How long to wait for a burst of live changes to settle before reloading. */
 const RELOAD_DELAY_MS = 250;
@@ -30,6 +31,7 @@ export function useGroceries() {
           if (saving.current > 0) return;
           setData(next);
           setLoadFailed(false);
+          writeSavedCopy("groceries", next);
         },
         () => setLoadFailed(true),
       );
@@ -37,6 +39,10 @@ export function useGroceries() {
   }, []);
 
   useEffect(() => {
+    // Show what was here last time straight away; the load below replaces it.
+    const saved = readSavedCopy<Groceries>("groceries");
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- localStorage only exists in the browser
+    if (saved) setData((current) => current ?? saved);
     reload();
     // Live updates pause while the phone is locked; catch up when it's back.
     const unwatch = watchGroceries(reload);

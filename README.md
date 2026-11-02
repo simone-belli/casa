@@ -218,3 +218,6 @@ dashboard and set `status` to `fixed` or `wontfix` once dealt with.
   leave the page, but not if you close the app while still on it.
 - If both of you edit the same recipe at once, the last save wins. The second
   person sees a warning first.
+- To open quickly, each section first shows what it showed last time on that
+  phone, then swaps in the latest within a second or so. Signing out or in
+  clears these saved copies.

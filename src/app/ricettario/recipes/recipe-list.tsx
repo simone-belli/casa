@@ -6,6 +6,7 @@ import { SafeLink } from "@/components/safe-link";
 import { ui } from "@/components/ui";
 import { useHousehold } from "@/lib/household";
 import { listRecipes, watchRecipes } from "@/lib/recipes/db";
+import { readSavedCopy, writeSavedCopy } from "@/lib/saved-copy";
 import { COURSES, type Course, LABEL_NAMES, tagName } from "@/lib/recipes/labels";
 import { filterMenu, MENU } from "@/lib/recipes/menu";
 import { searchRecipes } from "@/lib/recipes/search";
@@ -31,11 +32,16 @@ export function RecipeList() {
   const { nameOf } = useHousehold();
 
   useEffect(() => {
+    // Show what was here last time straight away; the load below replaces it.
+    const saved = readSavedCopy<Recipe[]>("recipes");
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- localStorage only exists in the browser
+    if (saved) setRecipes((current) => current ?? saved);
     const load = () =>
       listRecipes().then(
         (list) => {
           setRecipes(list);
           setFailed(false);
+          writeSavedCopy("recipes", list);
         },
         () => setFailed(true),
       );

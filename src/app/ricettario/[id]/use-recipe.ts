@@ -4,6 +4,7 @@ import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { getRecipe, watchRecipes } from "@/lib/recipes/db";
 import type { Recipe } from "@/lib/recipes/types";
+import { readSavedCopy } from "@/lib/saved-copy";
 
 type State =
   | { status: "loading" }
@@ -22,6 +23,12 @@ export function useRecipe(options: { live: boolean; onRemoteChange?: (type: "UPD
 
   useEffect(() => {
     let cancelled = false;
+    // Viewing (not editing), show the copy from the last recipe list straight
+    // away; the load below replaces it. An edit form must start from the
+    // saved recipe, or saving could undo the other person's changes.
+    const saved = live ? readSavedCopy<Recipe[]>("recipes")?.find((r) => r.id === id) : undefined;
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- localStorage only exists in the browser
+    if (saved) setState({ status: "ready", recipe: saved });
     const load = () =>
       getRecipe(id).then(
         (recipe) => !cancelled && setState(recipe ? { status: "ready", recipe } : { status: "missing" }),
