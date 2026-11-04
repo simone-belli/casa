@@ -14,6 +14,7 @@ const item = (fields: Partial<AgendaItem> & { id: string }): AgendaItem => ({
   kind: "task",
   title: fields.id,
   note: null,
+  location: null,
   all_day: false,
   starts_at: null,
   ends_at: null,

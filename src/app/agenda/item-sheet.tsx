@@ -430,6 +430,11 @@ export function ItemSheet({ target, agenda, viewer, nameOf, change, onClose }: P
         </fieldset>
 
         <label>
+          <span className={ui.label}>Place</span>
+          <input value={draft.location} onChange={(e) => set({ location: e.target.value })} className={ui.input} />
+        </label>
+
+        <label>
           <span className={ui.label}>Note</span>
           <textarea value={draft.note} onChange={(e) => set({ note: e.target.value })} rows={2} className={ui.input} />
         </label>

@@ -11,6 +11,8 @@ export type Draft = {
   kind: ItemKind;
   title: string;
   note: string;
+  /** Where it is, or "". */
+  location: string;
   /** Tasks can be undated; events always have a date. */
   dated: boolean;
   allDay: boolean;
@@ -53,6 +55,7 @@ export function newDraft(kind: ItemKind, timeZone: string, date?: string, now: D
     kind,
     title: "",
     note: "",
+    location: "",
     dated: kind === "event" || Boolean(date),
     allDay: false,
     date: day,
@@ -74,6 +77,7 @@ export function draftFromOccurrence(occ: Occurrence, viewerZone: string, me: str
     kind: item.kind,
     title: item.title,
     note: item.note ?? "",
+    location: item.location ?? "",
     keepMissed: (series ?? item).keep_missed,
     assignee: assigneeChoice((series ?? item).assignees, me),
     reminder: item.reminder_minutes,
@@ -108,6 +112,7 @@ export type ItemFields = Pick<
   | "kind"
   | "title"
   | "note"
+  | "location"
   | "all_day"
   | "starts_at"
   | "ends_at"
@@ -139,6 +144,7 @@ export function fieldsFromDraft(draft: Draft, timeZone: string, existing?: Agend
     kind: draft.kind,
     title: draft.title.trim(),
     note: draft.note.trim() || null,
+    location: draft.location.trim() || null,
     time_zone: timeZone,
     keep_missed: false,
     reminder_minutes: null as number | null,

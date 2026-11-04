@@ -138,7 +138,7 @@ export async function insertEvent(token: string, calendarId: string, id: string,
   return (await call<GoogleEvent>(token, "POST", `${cal(calendarId)}/events`, { id, ...body }))!;
 }
 
-export async function patchEvent(token: string, calendarId: string, id: string, body: EventBody): Promise<GoogleEvent> {
+export async function patchEvent(token: string, calendarId: string, id: string, body: Partial<EventBody>): Promise<GoogleEvent> {
   return (await call<GoogleEvent>(token, "PATCH", `${cal(calendarId)}/events/${encodeURIComponent(id)}`, body))!;
 }
 

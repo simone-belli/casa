@@ -15,6 +15,7 @@ export type GoogleEvent = {
   status?: "confirmed" | "tentative" | "cancelled";
   summary?: string;
   description?: string;
+  location?: string | null;
   start?: GoogleTime;
   end?: GoogleTime;
   recurrence?: string[];
@@ -25,11 +26,17 @@ export type GoogleEvent = {
   updated?: string;
 };
 
-/** What Agenda writes to Google for an item (sent as a patch, so nulls clear fields). */
+/**
+ * What Agenda writes to Google for an item. It's sent as a patch, so nulls
+ * clear fields and anything left out (attendees, video calls, attachments,
+ * colours…) stays as Google has it.
+ */
 export type EventBody = {
   status: "confirmed" | "cancelled";
   summary?: string;
   description?: string;
+  /** Only sent when Agenda knows a place; null clears it. */
+  location?: string | null;
   start?: GoogleTime;
   end?: GoogleTime;
   recurrence?: string[];
@@ -87,6 +94,7 @@ export function eventBody(item: AgendaItem, line: string): EventBody {
     status: "confirmed",
     summary,
     description,
+    ...(item.location ? { location: item.location } : {}),
     start,
     end,
     reminders: {
@@ -97,6 +105,49 @@ export function eventBody(item: AgendaItem, line: string): EventBody {
   };
   if (!item.recurring_item_id) body.recurrence = item.recurrence ?? [];
   return body;
+}
+
+/** JSON with object keys sorted, so two bodies compare the same whatever order their keys are in. */
+function stable(value: unknown): string {
+  return JSON.stringify(value, (_key, v: unknown) =>
+    v && typeof v === "object" && !Array.isArray(v)
+      ? Object.fromEntries(Object.entries(v as Record<string, unknown>).sort(([a], [b]) => a.localeCompare(b)))
+      : v,
+  );
+}
+
+/**
+ * The part of `body` that differs from `synced`, what Google was last known
+ * to have: only that is sent, so Google keeps whatever Agenda can't fully
+ * represent (its default reminders, several reminders, the way it wrote the
+ * times) unless the item really changed in Agenda.
+ */
+export function changedFields(body: EventBody, synced: EventBody): Partial<EventBody> {
+  const changed: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(body)) {
+    if (value !== undefined && stable(value) !== stable(synced[key as keyof EventBody])) changed[key] = value;
+  }
+  // A place removed in Agenda is removed in Google too.
+  if (body.status === "confirmed" && body.location === undefined && synced.location) changed.location = null;
+  return changed as Partial<EventBody>;
+}
+
+/**
+ * What Google has for an event just read into `item`, in the form Agenda
+ * writes (`body`, from eventBody). The fields Agenda reads exactly are taken
+ * from the event itself, so Agenda's own additions (the "Assigned:" line, its
+ * item id) still get written once. The others are taken as Agenda now has
+ * them, so reading an event never writes Agenda's simplified copy back.
+ */
+export function syncedBody(body: EventBody, event: GoogleEvent): EventBody {
+  if (body.status === "cancelled") return body;
+  const ownId = event.extendedProperties?.private?.agendaItemId;
+  return {
+    ...body,
+    summary: event.summary,
+    description: event.description,
+    extendedProperties: ownId ? { private: { agendaItemId: ownId } } : undefined,
+  };
 }
 
 // --- Reading Google events ------------------------------------------------------
@@ -134,7 +185,7 @@ export function occurrenceFromGoogle(time: GoogleTime | undefined): string | nul
 
 export type FieldsFromGoogle = Pick<
   AgendaItem,
-  "title" | "note" | "all_day" | "starts_at" | "ends_at" | "start_date" | "end_date" | "time_zone" | "recurrence" | "reminder_minutes"
+  "title" | "note" | "location" | "all_day" | "starts_at" | "ends_at" | "start_date" | "end_date" | "time_zone" | "recurrence" | "reminder_minutes"
 > & { done: boolean | null };
 
 /** The item fields an event carries. Null if it has no usable start. */
@@ -145,6 +196,7 @@ export function fieldsFromEvent(event: GoogleEvent, calendarZone: string): Field
     title,
     done,
     note: readDescription(event.description),
+    location: event.location?.trim() || null,
     recurrence: event.recurrence && event.recurrence.length > 0 ? event.recurrence : null,
     reminder_minutes: reminder,
     time_zone: event.start?.timeZone || calendarZone,

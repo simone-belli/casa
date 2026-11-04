@@ -49,7 +49,7 @@ export async function deleteItem(id: string): Promise<void> {
 }
 
 /** Fields a changed occurrence copies from its series, besides its own dates. */
-const COPIED = ["kind", "title", "note", "time_zone", "reminder_minutes", "assignees"] as const;
+const COPIED = ["kind", "title", "note", "location", "time_zone", "reminder_minutes", "assignees"] as const;
 
 /** A new row for one occurrence of a series, as the series has it. */
 export function occurrenceRow(occ: Occurrence, series: AgendaItem): Partial<AgendaItem> {
@@ -106,7 +106,7 @@ export async function cancelOccurrence(occ: Occurrence): Promise<void> {
 const SCHEDULE = ["all_day", "starts_at", "ends_at", "start_date", "end_date", "time_zone", "recurrence"] as const;
 
 /**
- * "All of them": saves the series. Changes to the title, note and reminder
+ * "All of them": saves the series. Changes to the title, note, place and reminder
  * also reach the changed occurrences that still had the old value. If the
  * schedule changed, changed occurrences that are still to come or not
  * ticked off are dropped, since they belonged to the old dates.
@@ -134,7 +134,7 @@ export async function saveSeries(series: AgendaItem, fields: ItemFields, today: 
   if (series.kind !== fields.kind) {
     check((await db.from("agenda_items").update({ kind: fields.kind }).eq("recurring_item_id", series.id)).error);
   }
-  for (const key of ["title", "note", "reminder_minutes"] as const) {
+  for (const key of ["title", "note", "location", "reminder_minutes"] as const) {
     if (series[key] === fields[key]) continue;
     const query = db.from("agenda_items").update({ [key]: fields[key] }).eq("recurring_item_id", series.id);
     check((await (series[key] === null ? query.is(key, null) : query.eq(key, series[key]))).error);

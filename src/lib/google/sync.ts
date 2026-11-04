@@ -2,12 +2,14 @@ import "server-only";
 
 import {
   assignedLine,
+  changedFields,
   eventBody,
   eventIdFor,
   fieldsFromEvent,
   instanceId,
   isInstanceId,
   occurrenceFromGoogle,
+  syncedBody,
   type EventBody,
   type FieldsFromGoogle,
   type GoogleEvent,
@@ -44,7 +46,19 @@ type SyncState = {
   channel_address: string | null;
 };
 
-type Link = { item_id: string; google_event_id: string; google_etag: string | null; pushed_hash: string | null };
+/**
+ * `pushed_body` is what Google was last known to have for the item, in the
+ * form Agenda writes, and `pushed_hash` its hash: Agenda writes again only
+ * when what it would write differs, and then only the fields that differ.
+ * Links made before pushed_body existed have it null, and are written in full.
+ */
+type Link = {
+  item_id: string;
+  google_event_id: string;
+  google_etag: string | null;
+  pushed_hash: string | null;
+  pushed_body: EventBody | null;
+};
 
 const db = () => supabaseService();
 
@@ -98,7 +112,7 @@ async function snapshot(): Promise<Snapshot> {
     selectAll<AgendaItem>((from, to) => service.from("agenda_items").select("*").order("id").range(from, to)),
     selectAll<Proposal>((from, to) => service.from("agenda_proposals").select("*").eq("status", "pending").order("id").range(from, to)),
     selectAll<Link>((from, to) =>
-      service.from("agenda_google_links").select("item_id, google_event_id, google_etag, pushed_hash").order("item_id").range(from, to),
+      service.from("agenda_google_links").select("item_id, google_event_id, google_etag, pushed_hash, pushed_body").order("item_id").range(from, to),
     ),
     members(),
   ]);
@@ -110,7 +124,15 @@ function desired(item: AgendaItem, snap: Snapshot): { body: EventBody; hash: str
   const owner = item.recurring_item_id ? (snap.items.get(item.recurring_item_id) ?? item) : item;
   const pending = snap.proposals.find((p) => p.item_id === owner.id) ?? null;
   const body = eventBody(item, assignedLine(owner, pending, (id) => snap.names.get(id) ?? null));
-  return { body, hash: sha256(JSON.stringify(body)) };
+  return { body, hash: hashOf(body) };
+}
+
+const hashOf = (body: EventBody) => sha256(JSON.stringify(body));
+
+/** The link for an item just updated from `event`: in step with Google, so nothing of Google's is overwritten. */
+function pulledLink(item: AgendaItem, event: GoogleEvent, snap: Snapshot): Link {
+  const synced = syncedBody(desired(item, snap).body, event);
+  return { item_id: item.id, google_event_id: event.id, google_etag: event.etag ?? null, pushed_hash: hashOf(synced), pushed_body: synced };
 }
 
 async function saveLink(link: Link): Promise<void> {
@@ -146,8 +168,8 @@ async function pullEvent(event: GoogleEvent, snap: Snapshot, calendarZone: strin
   const service = db();
   const byEvent = new Map(snap.links.map((l) => [l.google_event_id, l]));
   const link = byEvent.get(event.id);
-  // Our own write coming back.
-  if (link && link.google_etag && link.google_etag === event.etag) return;
+  // Our own write coming back (links from before pushed_body are read again, to pick up the place).
+  if (link && link.google_etag && link.google_etag === event.etag && link.pushed_body) return;
   const linked = link ? snap.items.get(link.item_id) : undefined;
   const series = event.recurringEventId ? snap.items.get(byEvent.get(event.recurringEventId)?.item_id ?? "") : undefined;
   const occurrence = occurrenceFromGoogle(event.originalStartTime);
@@ -155,7 +177,7 @@ async function pullEvent(event: GoogleEvent, snap: Snapshot, calendarZone: strin
   if (event.status === "cancelled") {
     if (linked?.recurring_item_id) {
       check((await service.from("agenda_items").update({ cancelled: true }).eq("id", linked.id)).error);
-      await saveLink({ ...link!, google_etag: event.etag ?? null, pushed_hash: null });
+      await saveLink(pulledLink({ ...linked, cancelled: true }, event, snap));
     } else if (linked) {
       check((await service.from("agenda_items").delete().eq("id", linked.id)).error);
       await dropLink(linked.id);
@@ -180,8 +202,7 @@ async function pullEvent(event: GoogleEvent, snap: Snapshot, calendarZone: strin
     const local = desired(linked, snap);
     const unpushed = link.pushed_hash !== null && local.hash !== link.pushed_hash;
     if (unpushed && event.updated && linked.updated_at > event.updated) return;
-    check((await service.from("agenda_items").update(itemFields(fields, linked.kind, Boolean(linked.recurring_item_id))).eq("id", linked.id)).error);
-    await saveLink({ ...link, google_etag: event.etag ?? null, pushed_hash: null });
+    await saveLink(pulledLink(await updateItem(linked, fields), event, snap));
     return;
   }
   if (link) return; // Deleted in Agenda; the push removes it from Google.
@@ -190,8 +211,7 @@ async function pullEvent(event: GoogleEvent, snap: Snapshot, calendarZone: strin
   const ownId = event.extendedProperties?.private?.agendaItemId;
   const own = ownId ? snap.items.get(ownId) : undefined;
   if (own) {
-    check((await service.from("agenda_items").update(itemFields(fields, own.kind, Boolean(own.recurring_item_id))).eq("id", own.id)).error);
-    await saveLink({ item_id: own.id, google_event_id: event.id, google_etag: event.etag ?? null, pushed_hash: null });
+    await saveLink(pulledLink(await updateItem(own, fields), event, snap));
     return;
   }
 
@@ -203,29 +223,41 @@ async function pullEvent(event: GoogleEvent, snap: Snapshot, calendarZone: strin
         { ...copyOfSeries(series), ...itemFields(fields, series.kind, true), recurring_item_id: series.id, original_start: occurrence, cancelled: false },
         { onConflict: "recurring_item_id,original_start" },
       )
-      .select("id")
+      .select("*")
       .single();
     check(error);
-    await saveLink({ item_id: (data as { id: string }).id, google_event_id: event.id, google_etag: event.etag ?? null, pushed_hash: null });
+    await saveLink(pulledLink(data as AgendaItem, event, snap));
     return;
   }
 
   // Created in Google: an event for both of us.
-  const id = crypto.randomUUID();
-  check(
-    (
-      await service.from("agenda_items").insert({
-        id,
-        kind: "event",
-        ...itemFields(fields, "event", false),
-        assignees: [...snap.names.keys()].slice(0, 2),
-      })
-    ).error,
-  );
-  await saveLink({ item_id: id, google_event_id: event.id, google_etag: event.etag ?? null, pushed_hash: null });
+  const { data, error } = await service
+    .from("agenda_items")
+    .insert({
+      id: crypto.randomUUID(),
+      kind: "event",
+      ...itemFields(fields, "event", false),
+      assignees: [...snap.names.keys()].slice(0, 2),
+    })
+    .select("*")
+    .single();
+  check(error);
+  await saveLink(pulledLink(data as AgendaItem, event, snap));
 }
 
-const COPIED = ["kind", "title", "note", "time_zone", "reminder_minutes", "assignees", "all_day"] as const;
+/** Writes an event's fields onto an item, and returns the item as it now is. */
+async function updateItem(item: AgendaItem, fields: FieldsFromGoogle): Promise<AgendaItem> {
+  const { data, error } = await db()
+    .from("agenda_items")
+    .update(itemFields(fields, item.kind, Boolean(item.recurring_item_id)))
+    .eq("id", item.id)
+    .select("*")
+    .single();
+  check(error);
+  return data as AgendaItem;
+}
+
+const COPIED = ["kind", "title", "note", "location", "time_zone", "reminder_minutes", "assignees", "all_day"] as const;
 
 function copyOfSeries(series: AgendaItem): Partial<AgendaItem> {
   return Object.fromEntries(COPIED.map((k) => [k, series[k]]));
@@ -302,10 +334,17 @@ async function push(state: SyncState, token: string): Promise<number> {
   const write = async (item: AgendaItem, eventId: string, existing: Link | undefined) => {
     const { body, hash } = desired(item, snap);
     if (existing && existing.pushed_hash === hash) return existing;
+    // Only what changed in Agenda, so the rest of the event stays as Google has it.
+    const patch = existing?.pushed_body ? changedFields(body, existing.pushed_body) : body;
+    if (existing && Object.keys(patch).length === 0) {
+      const link = { ...existing, pushed_hash: hash, pushed_body: body };
+      await saveLink(link);
+      return link;
+    }
     let saved: GoogleEvent;
     if (existing || item.recurring_item_id) {
       try {
-        saved = await patchEvent(token, calendarId, eventId, body);
+        saved = await patchEvent(token, calendarId, eventId, patch);
       } catch (error) {
         if (!gone(error) || item.recurring_item_id) throw error;
         saved = await insertEvent(token, calendarId, eventId, body);
@@ -319,7 +358,7 @@ async function push(state: SyncState, token: string): Promise<number> {
         saved = await patchEvent(token, calendarId, eventId, body);
       }
     }
-    const link = { item_id: item.id, google_event_id: saved.id ?? eventId, google_etag: saved.etag ?? null, pushed_hash: hash };
+    const link = { item_id: item.id, google_event_id: saved.id ?? eventId, google_etag: saved.etag ?? null, pushed_hash: hash, pushed_body: body };
     await saveLink(link);
     return link;
   };
@@ -358,7 +397,8 @@ async function push(state: SyncState, token: string): Promise<number> {
       } catch (error) {
         // The occurrence isn't in the series in Google any more: nothing to change.
         if (!gone(error)) throw error;
-        await saveLink({ item_id: item.id, google_event_id: eventId, google_etag: null, pushed_hash: desired(item, snap).hash });
+        const { body, hash } = desired(item, snap);
+        await saveLink({ item_id: item.id, google_event_id: eventId, google_etag: null, pushed_hash: hash, pushed_body: body });
       }
     });
   }

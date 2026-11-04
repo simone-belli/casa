@@ -43,10 +43,11 @@ from the server.
    *Report a bug* screen and [`0009_seasons.sql`](supabase/migrations/0009_seasons.sql)
    for Ricettario's seasons, then [`0010_grocery_amounts.sql`](supabase/migrations/0010_grocery_amounts.sql)
    for buying a recipe's ingredients and [`0011_specialist_shops.sql`](supabase/migrations/0011_specialist_shops.sql)
-   for Groceries' specialist shops.
+   for Groceries' specialist shops, then [`0012_agenda_location.sql`](supabase/migrations/0012_agenda_location.sql)
+   for Agenda's places.
 
    **Already set up?** Run, in order, whichever of these you haven't run yet.
-   `0003`, `0005`, `0007`, `0008`, `0009`, `0010` and `0011` are safe to run again; if Groceries says the home places
+   `0003`, `0005`, `0007`, `0008`, `0009`, `0010`, `0011` and `0012` are safe to run again; if Groceries says the home places
    aren't set up, run `0003`.
 3. Still in the SQL Editor, add the two of you (lower-case emails):
 

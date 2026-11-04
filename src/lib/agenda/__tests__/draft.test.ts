@@ -12,6 +12,7 @@ const row = (fields: Partial<AgendaItem>): AgendaItem => ({
   kind: "event",
   title: "Party",
   note: null,
+  location: null,
   all_day: false,
   starts_at: null,
   ends_at: null,

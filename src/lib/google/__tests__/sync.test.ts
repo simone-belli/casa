@@ -20,6 +20,7 @@ function prepare(table: string, row: Row): Row {
   if (table !== "agenda_items") return row;
   return {
     note: null,
+    location: null,
     all_day: false,
     starts_at: null,
     ends_at: null,
@@ -144,6 +145,8 @@ vi.mock("@/lib/supabase/service", () => ({
 const google = new Map<string, GoogleEvent & { changed: number }>();
 let changes = 0;
 let writes = 0;
+/** The bodies of the patches sent to Google. */
+let patches: Record<string, unknown>[] = [];
 
 function store(id: string, event: GoogleEvent) {
   const previous = google.get(id);
@@ -179,6 +182,7 @@ function fakeFetch(input: RequestInfo | URL, init?: RequestInit): Promise<Respon
   const id = path.replace("/events/", "");
   if (method === "PATCH") {
     writes++;
+    patches.push(body);
     const series = google.get(id.split("_")[0]);
     if (!google.has(id) && !(id.includes("_") && series)) return json(404, { error: { message: "not found" } });
     const extra = id.includes("_") && !google.has(id) ? { recurringEventId: series!.id } : {};
@@ -206,6 +210,7 @@ beforeEach(() => {
   google.clear();
   changes = 0;
   writes = 0;
+  patches = [];
   process.env.AGENDA_TOKEN_KEY = Buffer.alloc(32, 7).toString("base64");
   vi.stubGlobal("fetch", vi.fn(fakeFetch));
   tables.allowed_emails = [
@@ -319,6 +324,70 @@ describe("Google sync", () => {
     expect(items()).toHaveLength(1500);
     expect([...google.values()].filter((e) => e.status === "cancelled")).toHaveLength(0);
     expect(tables.agenda_google_links).toHaveLength(1500);
+  });
+
+  it("keeps what only Google has for an event (place, default reminders, guests…) when syncing and editing", async () => {
+    const details = {
+      location: "Via Roma 1, Milano",
+      reminders: { useDefault: true },
+      attendees: [{ email: "marco@example.com" }],
+      conferenceData: { entryPoints: [{ uri: "https://meet.example.com/abc" }] },
+      colorId: "5",
+    };
+    store("dinner", {
+      id: "dinner",
+      status: "confirmed",
+      summary: "Dinner at Marco's",
+      description: "Bring wine",
+      start: { dateTime: "2026-10-31T19:00:00+01:00", timeZone: "Europe/Rome" },
+      end: { dateTime: "2026-10-31T22:00:00+01:00", timeZone: "Europe/Rome" },
+      ...details,
+    } as GoogleEvent);
+    await syncNow();
+    const dinner = items().find((i) => i.title === "Dinner at Marco's")!;
+    expect(dinner.location).toBe("Via Roma 1, Milano");
+    // Reading it only adds Agenda's own line and id.
+    expect(patches).toEqual([{ description: "Bring wine\n\nAssigned: Both", extendedProperties: { private: { agendaItemId: dinner.id } } }]);
+    expect(google.get("dinner")).toMatchObject({ ...details, start: { dateTime: "2026-10-31T19:00:00+01:00" } });
+
+    // Changing the title in Agenda changes only the title in Google.
+    patches = [];
+    Object.assign(item(dinner.id as string), { title: "Dinner at Marco and Anna's", updated_at: now() });
+    await syncNow();
+    expect(patches).toEqual([{ summary: "Dinner at Marco and Anna's" }]);
+    expect(google.get("dinner")).toMatchObject({ summary: "Dinner at Marco and Anna's", ...details });
+
+    writes = 0;
+    await syncNow();
+    expect(writes).toBe(0);
+  });
+
+  it("writes a place set or removed in Agenda to Google", async () => {
+    addBins({ location: "Courtyard" });
+    await syncNow();
+    expect(google.get(binsEvent)?.location).toBe("Courtyard");
+    Object.assign(item(BINS), { location: null, updated_at: now() });
+    await syncNow();
+    expect(google.get(binsEvent)?.location).toBeNull();
+    editInGoogle(binsEvent, { location: "Street" });
+    await syncNow();
+    expect(item(BINS).location).toBe("Street");
+  });
+
+  it("reads events linked before Agenda kept places again, without overwriting them", async () => {
+    addBins();
+    await syncNow();
+    // As synced by the previous version: no place in Agenda, no record of what Google has.
+    const link = tables.agenda_google_links.find((l) => l.item_id === BINS)!;
+    link.pushed_body = null;
+    store(binsEvent, { id: binsEvent, location: "Courtyard", reminders: { useDefault: true } } as GoogleEvent);
+    link.google_etag = google.get(binsEvent)!.etag;
+    tables.agenda_sync_state[0].sync_token = null;
+    patches = [];
+    await syncNow();
+    expect(item(BINS).location).toBe("Courtyard");
+    expect(patches).toEqual([]);
+    expect(google.get(binsEvent)).toMatchObject({ location: "Courtyard", reminders: { useDefault: true } });
   });
 
   it("keeps the newer side when both changed at once", async () => {

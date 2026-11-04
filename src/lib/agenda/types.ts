@@ -8,6 +8,8 @@ export type AgendaItem = {
   kind: ItemKind;
   title: string;
   note: string | null;
+  /** Where it is, e.g. an address (Google Calendar's "location"). */
+  location: string | null;
   all_day: boolean;
   /** Timed items: UTC instants. */
   starts_at: string | null;
