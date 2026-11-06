@@ -1,6 +1,7 @@
 "use client";
 
 import { supabaseBrowser } from "@/lib/supabase/client";
+import { subscribeWithCatchUp } from "@/lib/live/realtime";
 import { uid } from "@/lib/uid";
 import { MAX_PHOTOS, PHOTO_BUCKET, PHOTO_MAX_EDGE } from "./photos";
 import type { Recipe, RecipeDraft } from "./types";
@@ -26,10 +27,18 @@ export async function createRecipe(draft: RecipeDraft): Promise<Recipe> {
   return data as Recipe;
 }
 
-export async function updateRecipe(id: string, draft: RecipeDraft): Promise<Recipe> {
-  const { data, error } = await supabaseBrowser().from("recipes").update(draft).eq("id", id).select().single();
+/**
+ * Saves an edited recipe. With `unchangedSince` (the `updated_at` it was
+ * opened at), saves only if nobody has changed or deleted it since, and
+ * returns null otherwise, so the other person's changes aren't overwritten
+ * unseen.
+ */
+export async function updateRecipe(id: string, draft: RecipeDraft, unchangedSince?: string): Promise<Recipe | null> {
+  let query = supabaseBrowser().from("recipes").update(draft).eq("id", id);
+  if (unchangedSince) query = query.eq("updated_at", unchangedSince);
+  const { data, error } = await query.select();
   if (error) throw error;
-  return data as Recipe;
+  return ((data ?? []) as Recipe[])[0] ?? null;
 }
 
 /** Replaces a recipe's tags, leaving the rest of it alone. */
@@ -54,6 +63,8 @@ export async function deleteRecipe(recipe: Recipe): Promise<void> {
 export function watchRecipes(
   onChange: (event: { type: "INSERT" | "UPDATE" | "DELETE"; recipe: Partial<Recipe> }) => void,
   id?: string,
+  /** Called when live updates reconnect after dropping, as changes may have been missed. */
+  onCatchUp?: () => void,
 ): () => void {
   const supabase = supabaseBrowser();
   const channel = supabase
@@ -66,7 +77,8 @@ export function watchRecipes(
         onChange({ type: payload.eventType, recipe });
       },
     )
-    .subscribe();
+;
+  subscribeWithCatchUp(channel, () => onCatchUp?.());
   return () => {
     void supabase.removeChannel(channel);
   };

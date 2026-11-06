@@ -32,7 +32,8 @@ type Props = {
   warnings?: string[];
   banner?: React.ReactNode;
   submitLabel: string;
-  onSave: (draft: RecipeDraft) => Promise<void>;
+  /** Resolves to false if it didn't save but the form should stay as it is (the banner says why). */
+  onSave: (draft: RecipeDraft) => Promise<void | false>;
   onCancel: () => void;
 };
 
@@ -128,7 +129,7 @@ export function RecipeForm({ initial, initialPortions, warnings = [], banner, su
     setSaving(true);
     setError(null);
     try {
-      await onSave(draft);
+      if ((await onSave(draft)) === false) setSaving(false);
     } catch {
       setError("Couldn't save. Check your connection and try again.");
       setSaving(false);

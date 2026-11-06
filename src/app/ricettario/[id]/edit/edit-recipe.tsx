@@ -3,7 +3,7 @@
 import { useSafeRouter } from "@/lib/navigation";
 import { useState } from "react";
 import { useFamilyDefaults, useHousehold } from "@/lib/household";
-import { createRecipe, updateRecipe } from "@/lib/recipes/db";
+import { createRecipe, getRecipe, updateRecipe } from "@/lib/recipes/db";
 import { portionsFor } from "@/lib/recipes/scaling";
 import type { RecipeDraft } from "@/lib/recipes/types";
 import { RicettarioHeader } from "../../header";
@@ -75,7 +75,15 @@ export function EditRecipe() {
               router.replace(`/ricettario/${created.id}`);
               return;
             }
-            await updateRecipe(id, draft);
+            // Unless they've seen the warning, only save over the recipe as it was
+            // opened: a change the live update missed (phone asleep, poor
+            // signal) must not be overwritten unseen.
+            const saved = await updateRecipe(id, draft, remote ? undefined : recipe.updated_at);
+            if (!saved) {
+              const latest = await getRecipe(id);
+              setRemote(latest ? { type: "UPDATE", by: latest.updated_by } : { type: "DELETE", by: null });
+              return false;
+            }
             router.replace(`/ricettario/${id}`);
           }}
         />

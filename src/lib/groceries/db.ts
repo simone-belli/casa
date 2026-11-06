@@ -1,6 +1,7 @@
 "use client";
 
 import { supabaseBrowser } from "@/lib/supabase/client";
+import { subscribeWithCatchUp } from "@/lib/live/realtime";
 import { uid } from "@/lib/uid";
 import {
   NOT_SOLD,
@@ -75,7 +76,7 @@ export function watchGroceries(onChange: () => void): () => void {
   for (const table of TABLES) {
     channel = channel.on("postgres_changes", { event: "*", schema: "public", table }, () => onChange());
   }
-  channel.subscribe();
+  subscribeWithCatchUp(channel, onChange);
   return () => {
     void supabase.removeChannel(channel);
   };

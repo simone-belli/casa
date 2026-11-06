@@ -251,3 +251,21 @@ export function draftFromQuickAdd(parsed: ParsedAgenda, blank: Draft): Draft {
     },
   };
 }
+
+/** The fields that make up when an item happens; they're only right together. */
+const WHEN = ["all_day", "starts_at", "ends_at", "start_date", "end_date", "time_zone", "recurrence", "keep_missed"] as const;
+
+/**
+ * The fields of `edited` that differ from `opened` (both from the same item,
+ * as it was opened and as edited), so saving leaves everything else as it is
+ * now, including the other person's changes meanwhile. If anything about when
+ * it happens changed, all of that is saved together.
+ */
+export function changedFields(opened: ItemFields, edited: ItemFields): Partial<ItemFields> {
+  const differs = (k: keyof ItemFields) => JSON.stringify(opened[k]) !== JSON.stringify(edited[k]);
+  const keys = (Object.keys(edited) as (keyof ItemFields)[]).filter(differs);
+  if (keys.some((k) => (WHEN as readonly string[]).includes(k))) {
+    for (const k of WHEN) if (k in edited && !keys.includes(k)) keys.push(k);
+  }
+  return Object.fromEntries(keys.map((k) => [k, edited[k]])) as Partial<ItemFields>;
+}

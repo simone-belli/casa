@@ -1,15 +1,12 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useHousehold } from "@/lib/household";
 import { loadAgenda, loadMySettings, saveMySettings, watchAgenda } from "./db";
 import { deviceTimeZone, todayIn } from "./time";
 import type { Agenda, AgendaSettings } from "./types";
-import { readSavedCopy, writeSavedCopy } from "@/lib/saved-copy";
+import { SAVE_FAILED, useLiveData } from "@/lib/live/use-live-data";
 import type { Viewer } from "./views";
-
-/** How long to wait for a burst of live changes to settle before reloading. */
-const RELOAD_DELAY_MS = 250;
 
 /** How long to wait for more changes before asking the server to sync with Google. */
 const SYNC_DELAY_MS = 800;
@@ -26,85 +23,29 @@ export function requestSync(delay = SYNC_DELAY_MS): void {
   }, delay);
 }
 
+const errorMessage = (e: unknown) =>
+  String((e as { message?: unknown } | null)?.message ?? "").includes("already been answered")
+    ? "That proposal has already been answered or withdrawn."
+    : SAVE_FAILED;
+
 /**
  * All Agenda data, kept live. `change` applies an edit on screen straight
- * away, then saves it; if saving fails the screen goes back to the saved
- * state and `error` says why.
+ * away, then saves it; the other person's changes keep arriving meanwhile
+ * without undoing it. If saving fails the edit comes off the screen and
+ * `error` says why.
  */
 export function useAgenda() {
-  const [data, setData] = useState<Agenda | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [loadFailed, setLoadFailed] = useState(false);
-  // While a save is in flight, a reload could bring back the old state and
-  // undo the change on screen; reload once the last save has finished.
-  const saving = useRef(0);
-  const timer = useRef<number | undefined>(undefined);
-
-  const reload = useCallback(() => {
-    window.clearTimeout(timer.current);
-    timer.current = window.setTimeout(() => {
-      if (saving.current > 0) return;
-      loadAgenda().then(
-        (next) => {
-          if (saving.current > 0) return;
-          setData(next);
-          setLoadFailed(false);
-          writeSavedCopy("agenda", next);
-        },
-        () => setLoadFailed(true),
-      );
-    }, RELOAD_DELAY_MS);
-  }, []);
+  const live = useLiveData<Agenda>({ name: "agenda", load: loadAgenda, watch: watchAgenda, onSaved: requestSync, errorMessage });
 
   useEffect(() => {
-    // Show what was here last time straight away; the load below replaces it.
-    const saved = readSavedCopy<Agenda>("agenda");
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- localStorage only exists in the browser
-    if (saved) setData((current) => current ?? saved);
-    reload();
     // A safety net in case a change notification from Google was missed.
     requestSync(0);
-    // Live updates pause while the phone is locked; catch up when it's back.
-    const unwatch = watchAgenda(reload);
-    const onVisible = () => {
-      if (document.visibilityState !== "visible") return;
-      reload();
-      requestSync(0);
-    };
+    const onVisible = () => document.visibilityState === "visible" && requestSync(0);
     document.addEventListener("visibilitychange", onVisible);
-    return () => {
-      unwatch();
-      document.removeEventListener("visibilitychange", onVisible);
-      window.clearTimeout(timer.current);
-    };
-  }, [reload]);
+    return () => document.removeEventListener("visibilitychange", onVisible);
+  }, []);
 
-  const change = useCallback(
-    async (edit: ((current: Agenda) => Agenda) | null, save: () => Promise<unknown>): Promise<boolean> => {
-      if (edit) setData((current) => (current ? edit(current) : current));
-      setError(null);
-      saving.current++;
-      try {
-        await save();
-        requestSync();
-        return true;
-      } catch (e) {
-        const message = String((e as { message?: unknown } | null)?.message ?? "");
-        setError(
-          message.includes("already been answered")
-            ? "That proposal has already been answered or withdrawn."
-            : "Couldn't save that. Check your connection and try again.",
-        );
-        return false;
-      } finally {
-        saving.current--;
-        reload();
-      }
-    },
-    [reload],
-  );
-
-  return { data, loadFailed, error, clearError: () => setError(null), change };
+  return live;
 }
 
 /** Who's looking, in which time zone, and today's date (which moves on at midnight). */

@@ -5,6 +5,7 @@ import { ui } from "@/components/ui";
 import { planAssignment, type Assignee } from "@/lib/agenda/assign";
 import { applyAssignment, cancelOccurrence, createItem, deleteItem, saveOccurrence, saveSeries, updateItem } from "@/lib/agenda/db";
 import {
+  changedFields,
   draftAssignees,
   draftFromOccurrence,
   draftProblem,
@@ -148,9 +149,10 @@ export function ItemSheet({ target, agenda, viewer, nameOf, change, onClose }: P
       if (detailsChanged) {
         if (series && scope === "one") await saveOccurrence(occ, fieldsFromDraft(draft, viewer.timeZone, series));
         else if (series) await saveSeries(series, seriesFieldsFromOccurrenceDraft(draft, occ, series, viewer.timeZone), viewer.today);
-        else await updateItem(item.id, fieldsFromDraft(draft, viewer.timeZone, item));
+        else await updateItem(item.id, changedFields(fieldsFromDraft(initial, viewer.timeZone, item), fieldsFromDraft(draft, viewer.timeZone, item)));
       }
-      await applyAssignment(main!.id, plan);
+      // Left as it was opened: don't redo it over the other person's change meanwhile.
+      if (draft.assignee !== initial.assignee) await applyAssignment(main!.id, plan);
     });
   }
 

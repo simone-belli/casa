@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { draftFromOccurrence, draftFromQuickAdd, draftProblem, fieldsFromDraft, newDraft, seriesFieldsFromOccurrenceDraft, withKind } from "../draft";
+import { changedFields, draftFromOccurrence, draftFromQuickAdd, draftProblem, fieldsFromDraft, newDraft, seriesFieldsFromOccurrenceDraft, withKind } from "../draft";
 import { seriesOccurrences, singleOccurrence } from "../occurrences";
 import { NO_REPEAT } from "../recurrence";
 import type { AgendaItem } from "../types";
@@ -153,5 +153,27 @@ describe("quick add", () => {
       endDate: "2026-11-01",
       endTime: "01:00",
     });
+  });
+});
+
+describe("changedFields", () => {
+  const opened = fieldsFromDraft({ ...newDraft("event", ROME, "2026-11-06"), title: "Dentist", note: "" }, ROME);
+
+  it("saves only what was edited, leaving the other person's changes alone", () => {
+    const edited = fieldsFromDraft({ ...newDraft("event", ROME, "2026-11-06"), title: "Dentist", note: "Bring the card" }, ROME);
+    expect(changedFields(opened, edited)).toEqual({ note: "Bring the card" });
+  });
+
+  it("saves nothing when nothing was edited", () => {
+    expect(changedFields(opened, opened)).toEqual({});
+  });
+
+  it("saves everything about when it happens together", () => {
+    const edited = fieldsFromDraft({ ...newDraft("event", ROME, "2026-11-07"), title: "Dentist", note: "" }, ROME);
+    const changed = changedFields(opened, edited);
+    expect(Object.keys(changed).sort()).toEqual(
+      ["all_day", "end_date", "ends_at", "keep_missed", "recurrence", "start_date", "starts_at", "time_zone"].sort(),
+    );
+    expect(changed).not.toHaveProperty("title");
   });
 });

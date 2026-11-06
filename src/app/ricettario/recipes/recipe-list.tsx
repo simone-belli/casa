@@ -36,19 +36,26 @@ export function RecipeList() {
     const saved = readSavedCopy<Recipe[]>("recipes");
     // eslint-disable-next-line react-hooks/set-state-in-effect -- localStorage only exists in the browser
     if (saved) setRecipes((current) => current ?? saved);
-    const load = () =>
-      listRecipes().then(
+    // Loads can come back out of order; never let an older one replace a newer one.
+    let started = 0;
+    let shown = 0;
+    const load = () => {
+      const number = ++started;
+      return listRecipes().then(
         (list) => {
+          if (number < shown) return;
+          shown = number;
           setRecipes(list);
           setFailed(false);
           writeSavedCopy("recipes", list);
         },
         () => setFailed(true),
       );
+    };
     void load();
     // Reload on any change by either person, and when the app comes back to
     // the foreground (live updates pause while the phone is locked).
-    const unwatch = watchRecipes(() => void load());
+    const unwatch = watchRecipes(() => void load(), undefined, () => void load());
     const onVisible = () => document.visibilityState === "visible" && void load();
     document.addEventListener("visibilitychange", onVisible);
     return () => {

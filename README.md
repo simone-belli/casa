@@ -217,8 +217,12 @@ dashboard and set `status` to `fixed` or `wontfix` once dealt with.
 
 - Photos uploaded for a recipe that's then abandoned are removed when you
   leave the page, but not if you close the app while still on it.
-- If both of you edit the same recipe at once, the last save wins. The second
-  person sees a warning first.
+- If both of you edit the same recipe at once, the second to save is stopped
+  and warned first (even if their phone missed the live update); saving again
+  replaces the other person's changes.
+- Editing the same grocery item or Agenda item at once: each save writes only
+  the fields that person changed, so different changes combine; if you both
+  change the same field, the last save wins.
 - To open quickly, each section first shows what it showed last time on that
   phone, then swaps in the latest within a second or so. Signing out or in
   clears these saved copies.

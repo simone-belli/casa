@@ -39,7 +39,7 @@ export function useRecipe(options: { live: boolean; onRemoteChange?: (type: "UPD
       if (event.type === "INSERT") return;
       if (live) void load();
       else onRemoteChange?.(event.type, event.recipe);
-    }, id);
+    }, id, () => live && void load());
     const onVisible = () => live && document.visibilityState === "visible" && void load();
     document.addEventListener("visibilitychange", onVisible);
     return () => {

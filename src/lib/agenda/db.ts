@@ -2,6 +2,7 @@
 
 import { supabaseBrowser } from "@/lib/supabase/client";
 import { selectAll } from "@/lib/supabase/select-all";
+import { subscribeWithCatchUp } from "@/lib/live/realtime";
 import { uid } from "@/lib/uid";
 import type { AssignmentPlan } from "./assign";
 import type { ItemFields } from "./draft";
@@ -24,11 +25,13 @@ export async function loadAgenda(): Promise<Agenda> {
 /** Calls `onChange` whenever an item or proposal changes, by either person or from Google. */
 export function watchAgenda(onChange: () => void): () => void {
   const supabase = supabaseBrowser();
-  const channel = supabase
-    .channel(`agenda:${uid()}`)
-    .on("postgres_changes", { event: "*", schema: "public", table: "agenda_items" }, () => onChange())
-    .on("postgres_changes", { event: "*", schema: "public", table: "agenda_proposals" }, () => onChange())
-    .subscribe();
+  const channel = subscribeWithCatchUp(
+    supabase
+      .channel(`agenda:${uid()}`)
+      .on("postgres_changes", { event: "*", schema: "public", table: "agenda_items" }, () => onChange())
+      .on("postgres_changes", { event: "*", schema: "public", table: "agenda_proposals" }, () => onChange()),
+    onChange,
+  );
   return () => {
     void supabase.removeChannel(channel);
   };

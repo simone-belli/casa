@@ -19,8 +19,16 @@ const byPosition = <T extends { position: number }>(a: T, b: T) => a.position - 
 
 /** Edit an item: name, note, amount needed, one-off, home places and its aisle in each supermarket. */
 export function ItemSheet({ item, data, change, onClose }: Props) {
-  const initialPlaces = data.itemPlaces.filter((p) => p.item_id === item.id).map((p) => p.place_id);
-  const initialAisles = Object.fromEntries(data.stores.map((s) => [s.id, filingChoice(data, item.id, s.id)]));
+  // The item as it was when the sheet opened. Saving writes only what's been
+  // changed since, so the other person's changes meanwhile (live, while the
+  // sheet is open) aren't undone.
+  const [opened] = useState(() => ({
+    places: data.itemPlaces.filter((p) => p.item_id === item.id).map((p) => p.place_id),
+    aisles: Object.fromEntries(data.stores.map((s) => [s.id, filingChoice(data, item.id, s.id)])) as Record<string, string>,
+    item,
+  }));
+  const initialPlaces = opened.places;
+  const initialAisles = opened.aisles;
   const [name, setName] = useState(item.name);
   const [note, setNote] = useState(item.note ?? "");
   const [amount, setAmount] = useState(item.amount ?? "");
@@ -35,31 +43,34 @@ export function ItemSheet({ item, data, change, onClose }: Props) {
     if (!name.trim()) return;
     setSaving(true);
     // An amount only means something while we need the item (buying it clears it).
-    const fields = {
+    const edited = {
       name: name.trim(),
       note: note.trim() || null,
       is_one_off: isOneOff,
       ...(item.status === "need" && { amount: amount.trim() || null }),
     };
+    const fields = Object.fromEntries(
+      Object.entries(edited).filter(([key, value]) => opened.item[key as keyof typeof edited] !== value),
+    ) as Partial<typeof edited>;
     const placesChanged = places.length !== initialPlaces.length || places.some((p) => !initialPlaces.includes(p));
     const changedStores = stores.filter((s) => (aisles[s.id] ?? "") !== (initialAisles[s.id] ?? ""));
+    const changedStoreIds = new Set(changedStores.map((s) => s.id));
     const saved = await change(
       (d) => ({
         ...d,
         items: d.items.map((i) => (i.id === item.id ? { ...i, ...fields } : i)),
-        itemPlaces: [
-          ...d.itemPlaces.filter((p) => p.item_id !== item.id),
-          ...places.map((place_id) => ({ item_id: item.id, place_id })),
-        ],
+        itemPlaces: placesChanged
+          ? [...d.itemPlaces.filter((p) => p.item_id !== item.id), ...places.map((place_id) => ({ item_id: item.id, place_id }))]
+          : d.itemPlaces,
         itemAisles: [
-          ...d.itemAisles.filter((f) => f.item_id !== item.id),
-          ...Object.entries(aisles)
-            .filter(([, choice]) => choice)
-            .map(([store_id, choice]) => ({ item_id: item.id, store_id, aisle_id: choice === NOT_SOLD ? null : choice })),
+          ...d.itemAisles.filter((f) => f.item_id !== item.id || !changedStoreIds.has(f.store_id)),
+          ...changedStores
+            .filter((store) => aisles[store.id])
+            .map((store) => ({ item_id: item.id, store_id: store.id, aisle_id: aisles[store.id] === NOT_SOLD ? null : aisles[store.id] })),
         ],
       }),
       async () => {
-        await updateItem(item.id, fields);
+        if (Object.keys(fields).length > 0) await updateItem(item.id, fields);
         if (placesChanged) await setItemPlaces(item.id, places);
         for (const store of changedStores) await fileItem(item.id, store.id, aisles[store.id] || null);
       },
