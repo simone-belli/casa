@@ -37,7 +37,7 @@ export function HomeAgenda() {
   const moreUndecided = summary.undecided.length - UNDECIDED_SHOWN;
 
   return (
-    <div className="flex flex-col gap-5">
+    <div className="flex flex-1 flex-col gap-5">
       {summary.waiting.length > 0 && (
         <Group title="Waiting for your answer" accent>
           {summary.waiting.map((occ) => (
@@ -78,7 +78,7 @@ export function HomeAgenda() {
       )}
 
       {nothing && (
-        <p className="rounded-2xl border border-dashed border-line px-4 py-6 text-center text-muted">
+        <p className="flex flex-1 items-center justify-center pb-16 text-center font-display text-xl text-muted">
           Nothing planned for the next three days.
         </p>
       )}

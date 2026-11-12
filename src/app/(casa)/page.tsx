@@ -12,23 +12,24 @@ const SECTIONS = [
 export default function CasaHome() {
   return (
     <main className={`${ui.page} flex min-h-dvh flex-col pt-[max(env(safe-area-inset-top),1rem)]`}>
-      <header className="flex items-center gap-3 py-4">
-        <Image src="/brand/casa.svg" alt="" width={44} height={44} className="shrink-0 rounded-xl shadow-sm" priority unoptimized />
-        <h1 className="min-w-0 flex-1 font-display text-3xl text-ink">Casa</h1>
-        <nav className="flex shrink-0 gap-2.5" aria-label="Sections">
-          {SECTIONS.map((section) => (
-            <SafeLink key={section.href} href={section.href} aria-label={section.name} className="rounded-[14px] shadow-sm active:scale-95">
-              <Image src={section.logo} alt="" width={52} height={52} className="rounded-[14px]" unoptimized />
-            </SafeLink>
-          ))}
-        </nav>
+      <header className="flex items-center justify-center gap-3 pt-4 pb-6">
+        <Image src="/brand/casa.svg" alt="" width={48} height={48} className="shrink-0 rounded-xl shadow-sm" priority unoptimized />
+        <h1 className="font-display text-4xl text-ink">Casa</h1>
       </header>
 
-      <div className="pt-2">
+      <nav className="grid grid-cols-3 gap-4" aria-label="Sections">
+        {SECTIONS.map((section) => (
+          <SafeLink key={section.href} href={section.href} aria-label={section.name} className="block rounded-[24px] shadow-md active:scale-[0.97]">
+            <Image src={section.logo} alt="" width={160} height={160} className="aspect-square h-auto w-full rounded-[24px]" priority unoptimized />
+          </SafeLink>
+        ))}
+      </nav>
+
+      <div className="flex flex-1 flex-col pt-8">
         <HomeAgenda />
       </div>
 
-      <footer className="mt-auto flex items-center justify-between pt-10">
+      <footer className="flex items-center justify-between pt-10">
         <SafeLink
           href="/report-bug"
           className="rounded-full border border-line bg-surface px-3 py-1.5 text-sm text-muted shadow-sm active:bg-line"
