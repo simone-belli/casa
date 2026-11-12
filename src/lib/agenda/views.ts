@@ -211,3 +211,52 @@ export function nudge(
   const counts = { undecided: sections.undecided.length, waiting: sections.waiting.length };
   return counts.undecided + counts.waiting > 0 ? counts : null;
 }
+
+// --- Casa home screen -------------------------------------------------------------
+
+/** How many days from today the home screen looks ahead. */
+export const HOME_DAYS = 3;
+
+export type HomeSummary = {
+  /** Proposals made to me, tasks and events, soonest first. */
+  waiting: Occurrence[];
+  /** Overdue tasks that aren't already waiting for my answer. */
+  overdue: Occurrence[];
+  /** Today and the next two days, only those with something on them. */
+  days: CalendarDay[];
+  /** Open unassigned tasks that aren't already listed as overdue. */
+  undecided: Occurrence[];
+};
+
+/** What the Casa home screen shows from Agenda: what needs seeing straight away. */
+export function homeSummary(agenda: Agenda, viewer: Viewer): HomeSummary {
+  const sections = taskSections(agenda, viewer);
+  const toMe = (item: AgendaItem) => {
+    const pending = pendingProposal(agenda.proposals, item.id);
+    return pending !== null && pending.proposed_by !== viewer.me;
+  };
+
+  const events: Occurrence[] = [];
+  for (const item of agenda.items) {
+    if (item.kind !== "event" || item.recurring_item_id || item.cancelled || !toMe(item)) continue;
+    const occ = item.recurrence ? nextOpenOccurrence(item, agenda.items, viewer) : singleOccurrence(item, viewer.timeZone);
+    if (occ?.endDate && occ.endDate >= viewer.today) events.push(occ);
+  }
+  const waiting = [...sections.waiting.map((e) => e.occ), ...events].sort(compareOccurrences);
+
+  const overdue = overdueTasks(agenda.items, viewer).filter((o) => !toMe(owner(o)));
+  const overdueKeys = new Set(overdue.map((o) => o.key));
+  return {
+    waiting,
+    overdue,
+    days: calendarDays(agenda, viewer, "everyone", viewer.today, HOME_DAYS).filter((d) => d.occurrences.length > 0),
+    undecided: sections.undecided.map((e) => e.occ).filter((o) => !overdueKeys.has(o.key)),
+  };
+}
+
+/** An occurrence the home screen lists, by its key (for opening it from a link). */
+export function homeOccurrence(agenda: Agenda, viewer: Viewer, key: string): Occurrence | null {
+  const summary = homeSummary(agenda, viewer);
+  const all = [...summary.waiting, ...summary.overdue, ...summary.days.flatMap((d) => d.occurrences), ...summary.undecided];
+  return all.find((o) => o.key === key) ?? null;
+}

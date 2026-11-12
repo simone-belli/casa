@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import type { Draft } from "@/lib/agenda/draft";
 import { dayLabel } from "@/lib/agenda/format";
 import type { Occurrence } from "@/lib/agenda/occurrences";
@@ -12,7 +12,7 @@ import { busyDays, calendarDays, calendarOverdue, taskSections, type CalendarFil
 import { AddBar } from "./add-bar";
 import { ItemSheet } from "./item-sheet";
 import { NudgeBanner } from "./nudge-banner";
-import { ErrorBanner, GroupTitle, ItemList, ItemRow, LoadState, useAgendaActions } from "./parts";
+import { ErrorBanner, GroupTitle, ItemList, ItemRow, LoadState, useAgendaActions, useOpenFromLink } from "./parts";
 import { MonthGrid } from "./month-grid";
 
 /** How many days the list shows at a time. */
@@ -31,6 +31,8 @@ export function CalendarView() {
   const [month, setMonth] = useState<string | null>(null);
   const [days, setDays] = useState(PAGE_DAYS);
   const [sheet, setSheet] = useState<{ draft: Draft } | { occ: Occurrence } | null>(null);
+
+  useOpenFromLink(data, viewer, useCallback((occ: Occurrence) => setSheet({ occ }), []));
 
   const start = from ?? viewer?.today ?? null;
   const shownMonth = month ?? start;

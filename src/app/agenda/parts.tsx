@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import { ui } from "@/components/ui";
 import { assigneeLabel } from "@/lib/agenda/assign";
 import { acknowledgeDecline, answerProposal, occurrenceRow, setDone } from "@/lib/agenda/db";
@@ -7,7 +8,7 @@ import { timeLabel, whenLabel } from "@/lib/agenda/format";
 import type { Occurrence } from "@/lib/agenda/occurrences";
 import type { Agenda, AgendaItem, Proposal } from "@/lib/agenda/types";
 import type { useAgenda } from "@/lib/agenda/use-agenda";
-import { owner, pendingProposal, unseenDecline, type Viewer } from "@/lib/agenda/views";
+import { homeOccurrence, owner, pendingProposal, unseenDecline, type Viewer } from "@/lib/agenda/views";
 import { uid } from "@/lib/uid";
 
 type Change = ReturnType<typeof useAgenda>["change"];
@@ -204,4 +205,25 @@ export function ItemRow({ occ, agenda, viewer, nameOf, actions, onOpen, day, ove
 /** A list of rows in a card. */
 export function ItemList({ children }: { children: React.ReactNode }) {
   return <ul className="overflow-hidden rounded-2xl border border-line bg-surface shadow-sm">{children}</ul>;
+}
+
+/** The link the Casa home screen uses to open an item in Agenda. */
+export const openLink = (path: "/agenda" | "/agenda/tasks", occ: Occurrence) => `${path}?open=${encodeURIComponent(occ.key)}`;
+
+/**
+ * Opens the item named in the address (see openLink) once the data is in,
+ * then takes it out of the address so it doesn't open again.
+ */
+export function useOpenFromLink(agenda: Agenda | null, viewer: Viewer | null, open: (occ: Occurrence) => void) {
+  useEffect(() => {
+    if (!agenda || !viewer) return;
+    const url = new URL(window.location.href);
+    const key = url.searchParams.get("open");
+    // The first data may be this phone's saved copy, without the item yet: try again when the rest arrives.
+    const occ = key && homeOccurrence(agenda, viewer, key);
+    if (!occ) return;
+    url.searchParams.delete("open");
+    window.history.replaceState(window.history.state, "", url);
+    open(occ);
+  }, [agenda, viewer, open]);
 }

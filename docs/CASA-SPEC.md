@@ -8,7 +8,13 @@
 - Designed to host several sections; more may be added later.
 - Initial sections: **Ricettario** and **Groceries** (built), **Agenda** (empty placeholder for now).
 - Each section has its own name, logo and visual theme. Casa, Ricettario, Agenda and Groceries do not share a theme.
-- Home screen: the Casa logo and large buttons for **Agenda**, **Groceries** and **Ricettario**, in that order, with a small **Report a bug** button at the bottom left and a small link to Settings at the bottom right.
+- Home screen: a small Casa logo and title, with icon-only buttons for **Agenda**, **Groceries** and **Ricettario**, in that order, across the top. A small **Report a bug** button sits at the bottom left and a small link to Settings at the bottom right.
+- The rest of the home screen shows what needs seeing straight away, from Agenda, top to bottom:
+  1. **Waiting for your answer**: tasks and events proposed to me (only if there are any).
+  2. **Overdue**: overdue tasks, as in Agenda (only if there are any).
+  3. **The next three days**: today, tomorrow and the day after, each with everyone's events and tasks. Days with nothing on them aren't shown.
+  4. **Undecided**: open unassigned tasks, the first three and "+ N more" (which opens Agenda's Tasks view).
+  Each item shows its time, title and assignee. Nothing can be changed from the home screen: tapping an item opens it in Agenda.
 - Report a bug: a screen where either person types or dictates (with the keyboard's microphone) what went wrong and sends it. Reports are stored in the database for review during development; the app can only add them.
 - Settings (Casa level, shared): default family size, the household members, sign out.
 - Casa is deployed on Vercel and served over HTTPS, so it works from anywhere, not just on the home Wi-Fi. It can still be run on a computer for development.

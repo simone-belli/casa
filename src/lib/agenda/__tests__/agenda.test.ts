@@ -4,7 +4,7 @@ import { occurrencesBetween, seriesOccurrences } from "../occurrences";
 import { buildRecurrence, describeRecurrence, expandDates, parseRecurrence, repeatChoiceOf, NO_REPEAT } from "../recurrence";
 import { addMonths, startOfWeek, weekday, zonedParts, zonedToUtc } from "../time";
 import type { AgendaItem, Proposal } from "../types";
-import { calendarDays, nudge, overdueTasks, taskSections, type Viewer } from "../views";
+import { calendarDays, homeOccurrence, homeSummary, nudge, overdueTasks, taskSections, type Viewer } from "../views";
 
 const SIMONE = "simone";
 const KAT = "kat";
@@ -321,5 +321,42 @@ describe("nudge", () => {
     expect(nudge(sections, settings, "2026-10-26")).toBeNull();
     expect(nudge(sections, { ...settings, nudge_dismissed_on: "2026-10-25" }, "2026-10-25")).toBeNull();
     expect(nudge(sections, { ...settings, nudge_enabled: false }, "2026-10-25")).toBeNull();
+  });
+});
+
+describe("home summary", () => {
+  const day = (id: string, date: string, fields: Partial<AgendaItem> = {}) => item({ id, all_day: true, start_date: date, ...fields });
+
+  it("lists the next three days that have something on, plus what needs seeing", () => {
+    const items = [
+      day("today-event", "2026-10-25", { kind: "event", assignees: [SIMONE, KAT] }),
+      day("day-after", "2026-10-27", { assignees: [KAT] }),
+      day("too-far", "2026-10-28", { kind: "event", assignees: [KAT] }),
+      day("late", "2026-10-20", { assignees: [SIMONE] }),
+      day("late-unassigned", "2026-10-21"),
+      day("late-to-me", "2026-10-22", { assignees: [KAT] }),
+      item({ id: "undated-unassigned" }),
+      day("event-to-me", "2026-11-05", { kind: "event", assignees: [KAT] }),
+      day("past-event-to-me", "2026-10-10", { kind: "event", assignees: [KAT] }),
+    ];
+    const proposals = ["late-to-me", "event-to-me", "past-event-to-me"].map((id) =>
+      proposal({ item_id: id, proposed_by: KAT, proposed_assignees: [SIMONE] }),
+    );
+    const s = homeSummary({ items, proposals }, viewer);
+    const ids = (list: { item: AgendaItem }[]) => list.map((o) => o.item.id);
+
+    expect(s.days.map((d) => [d.date, ids(d.occurrences)])).toEqual([
+      ["2026-10-25", ["today-event"]],
+      ["2026-10-27", ["day-after"]],
+    ]);
+    expect(ids(s.waiting)).toEqual(["late-to-me", "event-to-me"]);
+    expect(ids(s.overdue)).toEqual(["late", "late-unassigned"]);
+    expect(ids(s.undecided)).toEqual(["undated-unassigned"]);
+    expect(homeOccurrence({ items, proposals }, viewer, "event-to-me")?.item.id).toBe("event-to-me");
+    expect(homeOccurrence({ items, proposals }, viewer, "too-far")).toBeNull();
+  });
+
+  it("shows nothing for empty days", () => {
+    expect(homeSummary({ items: [], proposals: [] }, viewer).days).toEqual([]);
   });
 });

@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import type { Draft } from "@/lib/agenda/draft";
 import type { Occurrence } from "@/lib/agenda/occurrences";
 import { useAgenda, useMySettings, useViewer } from "@/lib/agenda/use-agenda";
@@ -9,7 +9,7 @@ import { useHousehold } from "@/lib/household";
 import { AddBar } from "./add-bar";
 import { ItemSheet } from "./item-sheet";
 import { NudgeBanner } from "./nudge-banner";
-import { ErrorBanner, GroupTitle, ItemList, ItemRow, LoadState, useAgendaActions } from "./parts";
+import { ErrorBanner, GroupTitle, ItemList, ItemRow, LoadState, useAgendaActions, useOpenFromLink } from "./parts";
 
 /** Every task, dated or not, by who it's for. */
 export function TasksView() {
@@ -20,6 +20,8 @@ export function TasksView() {
   const actions = useAgendaActions(change);
   const [showDone, setShowDone] = useState(false);
   const [sheet, setSheet] = useState<{ draft: Draft } | { occ: Occurrence } | null>(null);
+
+  useOpenFromLink(data, viewer, useCallback((occ: Occurrence) => setSheet({ occ }), []));
 
   const sections = useMemo(() => (data && viewer ? taskSections(data, viewer) : null), [data, viewer]);
   if (!data || !viewer || !sections) return <LoadState failed={loadFailed} />;
