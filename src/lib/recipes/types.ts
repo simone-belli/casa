@@ -55,6 +55,8 @@ export type RecipeDraft = z.infer<typeof recipeDraftSchema>;
 
 export type Recipe = RecipeDraft & {
   id: string;
+  /** Starred by either person; shared, and not part of editing the recipe. */
+  favourite: boolean;
   created_by: string | null;
   updated_by: string | null;
   created_at: string;

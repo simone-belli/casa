@@ -10,7 +10,7 @@ home life. Specs live in [`docs/`](docs):
 
 | Section | Status |
 |---|---|
-| **Ricettario** (recipes) | v0: add by typing/dictation, photo or link; menu filters (quick, Italian, Asian…, vegetarian, in season); scaling; editing; buy ingredients into Groceries; live sync |
+| **Ricettario** (recipes) | v0: add by typing/dictation, photo or link; menu filters (favourites, quick, Italian, Asian…, other, vegetarian, in season); scaling; editing; buy ingredients into Groceries; live sync |
 | **Agenda** (calendar and tasks) | v0: calendar and tasks views, proposals, recurring items, weekly nudge, quick add with Claude, two-way Google Calendar sync; live sync |
 | **Groceries** (shopping list) | v1: home and shopping views, quick add, one-offs, supermarkets and aisles, specialist shops, paste import; live sync |
 
@@ -44,10 +44,11 @@ from the server.
    for Ricettario's seasons, then [`0010_grocery_amounts.sql`](supabase/migrations/0010_grocery_amounts.sql)
    for buying a recipe's ingredients and [`0011_specialist_shops.sql`](supabase/migrations/0011_specialist_shops.sql)
    for Groceries' specialist shops, then [`0012_agenda_location.sql`](supabase/migrations/0012_agenda_location.sql)
-   for Agenda's places.
+   for Agenda's places, and [`0013_recipe_favourites.sql`](supabase/migrations/0013_recipe_favourites.sql)
+   for Ricettario's favourites.
 
    **Already set up?** Run, in order, whichever of these you haven't run yet.
-   `0003`, `0005`, `0007`, `0008`, `0009`, `0010`, `0011` and `0012` are safe to run again; if Groceries says the home places
+   `0003`, `0005`, `0007`, `0008`, `0009`, `0010`, `0011`, `0012` and `0013` are safe to run again; if Groceries says the home places
    aren't set up, run `0003`.
 3. Still in the SQL Editor, add the two of you (lower-case emails):
 

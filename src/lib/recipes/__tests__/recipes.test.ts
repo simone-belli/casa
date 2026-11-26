@@ -101,6 +101,7 @@ describe("searchRecipes", () => {
     updated_by: null,
     created_at: "",
     updated_at: "",
+    favourite: false,
     ...extra,
   });
   const recipes = [
@@ -190,6 +191,7 @@ describe("menu", () => {
     updated_by: null,
     created_at: "2026-01-01T00:00:00Z",
     updated_at: "2026-01-01T00:00:00Z",
+    favourite: false,
   });
   const salad = recipe("Panzanella", ["quick", "italian", "vegetarian", "hot-season"]);
   const stew = recipe("Spezzatino", ["slow-cooker", "italian", "cold-season"]);
@@ -207,6 +209,14 @@ describe("menu", () => {
     expect(titles(filterMenu(all, { course: null, vegetarian: false, season: null }))).toEqual(titles(all));
     expect(titles(filterMenu(all, { course: "quick", vegetarian: false, season: null }))).toEqual(["Panzanella", "Dal"]);
     expect(titles(filterMenu(all, { course: "italian", vegetarian: true, season: null }))).toEqual(["Panzanella", "Minestrone"]);
+  });
+
+  it("lists favourites and recipes in no section", () => {
+    const toast = recipe("Toast", ["breakfast", "vegetarian"]);
+    const starred = { ...stew, favourite: true };
+    const list = [salad, starred, curry, both, toast];
+    expect(titles(filterMenu(list, { course: "favourites", vegetarian: false, season: null }))).toEqual(["Spezzatino"]);
+    expect(titles(filterMenu(list, { course: "other", vegetarian: false, season: null }))).toEqual(["Toast"]);
   });
 
   it("keeps the season's recipes and those good all year", () => {

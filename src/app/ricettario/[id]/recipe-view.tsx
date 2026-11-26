@@ -6,7 +6,7 @@ import { useState } from "react";
 import { Stepper } from "@/components/stepper";
 import { ui } from "@/components/ui";
 import { useFamilyDefaults, useHousehold } from "@/lib/household";
-import { deleteRecipe } from "@/lib/recipes/db";
+import { deleteRecipe, setFavourite } from "@/lib/recipes/db";
 import { formatAmount } from "@/lib/recipes/format";
 import { tagName } from "@/lib/recipes/labels";
 import { BATCH_MULTIPLIERS, portionsFor, scaleQuantity } from "@/lib/recipes/scaling";
@@ -47,6 +47,10 @@ function RecipeDetails({ recipe, back }: { recipe: Recipe; back: { href: string;
   const [multiplier, setMultiplier] = useState(1);
   const [deleting, setDeleting] = useState(false);
   const [buying, setBuying] = useState(false);
+  // Shown at once while saving; dropped when the saved recipe catches up.
+  const [starring, setStarring] = useState<{ value: boolean; from: boolean } | null>(null);
+  const saved = Boolean(recipe.favourite);
+  const favourite = starring && starring.from === saved ? starring.value : saved;
 
   const adults = people?.adults ?? family?.default_adults ?? 2;
   const children = people?.children ?? family?.default_children ?? 2;
@@ -68,15 +72,37 @@ function RecipeDetails({ recipe, back }: { recipe: Recipe; back: { href: string;
     }
   }
 
+  async function toggleFavourite() {
+    const value = !favourite;
+    setStarring({ value, from: saved });
+    try {
+      await setFavourite(recipe.id, value);
+    } catch {
+      setStarring(null);
+      window.alert("Couldn't save the favourite. Check your connection.");
+    }
+  }
+
   return (
     <>
       <RicettarioHeader
         title="Recipe"
         back={back}
         action={
-          <SafeLink href={`/ricettario/${recipe.id}/edit`} className="rounded-full bg-white px-4 py-2 font-semibold text-brand active:opacity-80">
-            Edit
-          </SafeLink>
+          <>
+            <button
+              type="button"
+              onClick={toggleFavourite}
+              aria-pressed={favourite}
+              aria-label={favourite ? "Remove from favourites" : "Add to favourites"}
+              className={`-mx-1 flex h-10 w-10 items-center justify-center rounded-full text-3xl leading-none active:bg-white/20 ${favourite ? "text-amber-300" : "text-white"}`}
+            >
+              {favourite ? "★" : "☆"}
+            </button>
+            <SafeLink href={`/ricettario/${recipe.id}/edit`} className="rounded-full bg-white px-4 py-2 font-semibold text-brand active:opacity-80">
+              Edit
+            </SafeLink>
+          </>
         }
       />
       <article className="flex flex-col gap-5 px-4 pt-5">

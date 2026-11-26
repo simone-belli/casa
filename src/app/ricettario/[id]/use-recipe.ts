@@ -29,14 +29,22 @@ export function useRecipe(options: { live: boolean; onRemoteChange?: (type: "UPD
     const saved = live ? readSavedCopy<Recipe[]>("recipes")?.find((r) => r.id === id) : undefined;
     // eslint-disable-next-line react-hooks/set-state-in-effect -- localStorage only exists in the browser
     if (saved) setState({ status: "ready", recipe: saved });
+    // When the recipe was last changed, as loaded here.
+    let loadedAt: string | undefined;
     const load = () =>
       getRecipe(id).then(
-        (recipe) => !cancelled && setState(recipe ? { status: "ready", recipe } : { status: "missing" }),
+        (recipe) => {
+          if (cancelled) return;
+          loadedAt = recipe?.updated_at;
+          setState(recipe ? { status: "ready", recipe } : { status: "missing" });
+        },
         () => !cancelled && setState({ status: "error" }),
       );
     void load();
     const unwatch = watchRecipes((event) => {
       if (event.type === "INSERT") return;
+      // Starring keeps the updated time: it isn't an edit to warn about.
+      if (!live && event.type === "UPDATE" && event.recipe.updated_at === loadedAt) return;
       if (live) void load();
       else onRemoteChange?.(event.type, event.recipe);
     }, id, () => live && void load());

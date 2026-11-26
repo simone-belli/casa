@@ -7,8 +7,8 @@ import { ui } from "@/components/ui";
 import { useHousehold } from "@/lib/household";
 import { listRecipes, watchRecipes } from "@/lib/recipes/db";
 import { readSavedCopy, writeSavedCopy } from "@/lib/saved-copy";
-import { COURSES, type Course, LABEL_NAMES, tagName } from "@/lib/recipes/labels";
-import { filterMenu, MENU } from "@/lib/recipes/menu";
+import { isLabel, LABEL_NAMES, tagName } from "@/lib/recipes/labels";
+import { filterMenu, isMenuSection, MENU, type MenuSection } from "@/lib/recipes/menu";
 import { searchRecipes } from "@/lib/recipes/search";
 import type { Recipe } from "@/lib/recipes/types";
 import { RicettarioHeader } from "../header";
@@ -17,13 +17,18 @@ import { timeAgo } from "../time";
 
 const back = { href: "/ricettario", label: "Back to the menu" };
 
-const isCourse = (value: string | null): value is Course => (COURSES as readonly (string | null)[]).includes(value);
+/** What an empty section says. */
+function emptyMessage(section: MenuSection | null): string {
+  if (section === "favourites") return "No favourites yet. Tap ☆ on a recipe to add it here.";
+  if (section === "other") return "Every recipe is in one of the menu's sections.";
+  return `No recipes here yet. Tick ${section && isLabel(section) ? `“${LABEL_NAMES[section]}”` : "the menu boxes"} when adding or editing a recipe, or sort recipes with Claude in Ricettario's settings.`;
+}
 
-/** The recipes of one menu category (?c=quick), all of them, or a search (?q=…). */
+/** The recipes of one menu section (?c=quick), all of them, or a search (?q=…). */
 export function RecipeList() {
   const params = useSearchParams();
   const c = params.get("c");
-  const course = isCourse(c) ? c : null;
+  const course = isMenuSection(c) ? c : null;
   const [recipes, setRecipes] = useState<Recipe[] | null>(null);
   const [failed, setFailed] = useState(false);
   const [query, setQuery] = useState(params.get("q") ?? "");
@@ -120,7 +125,7 @@ export function RecipeList() {
             <p className="py-10 text-center text-muted">
               {query.trim()
                 ? `Nothing matches “${query}”.`
-                : `No recipes here yet. Tick ${item ? `“${LABEL_NAMES[item.tag]}”` : "the menu boxes"} when adding or editing a recipe, or sort recipes with Claude in Ricettario's settings.`}
+                : emptyMessage(course)}
             </p>
           )}
 
@@ -130,7 +135,14 @@ export function RecipeList() {
               return (
                 <li key={recipe.id}>
                   <SafeLink href={`/ricettario/${recipe.id}`} prefetch={false} className={`${ui.card} block active:bg-bg`}>
-                    <p className="font-display text-xl leading-snug">{recipe.title}</p>
+                    <p className="font-display text-xl leading-snug">
+                      {recipe.favourite && (
+                        <span className="mr-1.5 text-amber-500" aria-label="Favourite">
+                          ★
+                        </span>
+                      )}
+                      {recipe.title}
+                    </p>
                     <p className="mt-1 text-sm text-muted">
                       {recipe.kind === "batch" ? recipe.yield || "Batch" : `${recipe.ingredients.length} ingredients`}
                       {" · "}

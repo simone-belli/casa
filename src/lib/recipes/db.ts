@@ -47,6 +47,12 @@ export async function updateTags(id: string, tags: string[]): Promise<void> {
   if (error) throw error;
 }
 
+/** Stars or unstars a recipe. Doesn't count as an edit (see 0013_recipe_favourites.sql). */
+export async function setFavourite(id: string, favourite: boolean): Promise<void> {
+  const { error } = await supabaseBrowser().from("recipes").update({ favourite }).eq("id", id);
+  if (error) throw error;
+}
+
 export async function deleteRecipe(recipe: Recipe): Promise<void> {
   const supabase = supabaseBrowser();
   const { error } = await supabase.from("recipes").delete().eq("id", recipe.id);
