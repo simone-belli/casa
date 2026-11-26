@@ -93,7 +93,7 @@ Under **Ingredients**, a **Buy ingredients** button opens a checklist of the rec
 
 ## Finding recipes
 
-- **Ricettario's home is the menu** ("What shall we eat?"): a **Favourites** button, a button per menu category (Quick, Italian, Asian, Slow cook, BBQ, Starters, Side dishes, Desserts), an **Other** button for recipes in none of those categories, an **All recipes** button, and a search box. Tapping a button, or searching, opens the matching recipes on their own screen; its back arrow returns to the menu, and a recipe's back arrow returns to the list it was opened from.
+- **Ricettario's home is the menu**: a **Favourites** button, a button per menu category (Quick, Italian, Asian, Slow cook, BBQ, Starters, Side dishes, Desserts), an **Other** button for recipes in none of those categories, an **All recipes** button, and a search box. Tapping a button, or searching, opens the matching recipes on their own screen; its back arrow returns to the menu, and a recipe's back arrow returns to the list it was opened from.
 - **Favourites**: the ☆ in a recipe's header stars it (★) and adds it to Favourites; tapping again removes it. Favourites are shared by the household, starred recipes show a ★ in the lists, and starring isn't an edit: the recipe keeps its "updated" time and nobody editing it is warned.
 - Two tick boxes, on the menu and on the list, remembered on each phone:
   - **Vegetarian**: only vegetarian recipes.
