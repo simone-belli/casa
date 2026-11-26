@@ -26,7 +26,7 @@ export function RecipeView() {
   if (state.status !== "ready") {
     return (
       <>
-        <RicettarioHeader title="Recipe" back={back} />
+        <RicettarioHeader title="Recipe" hideTitle back={back} />
         <p className="px-4 py-12 text-center text-muted">
           {state.status === "loading" && "Loading…"}
           {state.status === "missing" && "This recipe was deleted."}
@@ -86,7 +86,8 @@ function RecipeDetails({ recipe, back }: { recipe: Recipe; back: { href: string;
   return (
     <>
       <RicettarioHeader
-        title="Recipe"
+        title={recipe.title}
+        hideTitle
         back={back}
         action={
           <>
