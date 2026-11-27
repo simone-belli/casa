@@ -27,6 +27,7 @@ Same as the rest of Casa: two users, one shared list, live updates, mobile-first
 ## Home view (taking stock)
 
 - Shows every item, grouped by home place in the places' order. An item in several places appears under each of them. Items with no place go under **Other**, and one-offs go under **One-offs** at the end.
+- Each place is a collapsible section showing how many items it holds, or how many we need. Under **All** they start closed, so the long list doesn't need scrolling; under **Only what we need** they start open. A section stays as the user left it until they leave the page.
 - Tap an item to switch it between have and need. Items we need are clearly highlighted.
 - A filter: **All** / **Only what we need**.
 - Search box at the top, used by quick add (below).

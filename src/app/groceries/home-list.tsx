@@ -10,7 +10,7 @@ import { useGroceries } from "@/lib/groceries/use-groceries";
 import { homeGroups, itemDetail } from "@/lib/groceries/views";
 import { useHousehold } from "@/lib/household";
 import { ItemSheet } from "./item-sheet";
-import { EditButton, ErrorBanner, GroupTitle, LoadState, PlacesCheck, Tick } from "./parts";
+import { EditButton, ErrorBanner, LoadState, PlacesCheck, Tick } from "./parts";
 import { QuickAdd } from "./quick-add";
 
 /** The home view: everything, by home place; tap to switch between have and need. */
@@ -20,6 +20,9 @@ export function HomeList() {
   const [onlyNeeded, setOnlyNeeded] = useDeviceSetting("groceries:onlyNeeded", false);
   const [showWho] = useDeviceSetting("groceries:showWho", false);
   const [editing, setEditing] = useState<string | null>(null);
+  // Sections start closed under "All" (the full list is long) and open under "To buy" (it's short).
+  // This holds the ones the user has flipped from that default, per filter, until they leave the page.
+  const [flipped, setFlipped] = useState<Set<string>>(() => new Set());
 
   if (!data) return <LoadState failed={loadFailed} />;
 
@@ -41,6 +44,14 @@ export function HomeList() {
   };
 
   const groups = homeGroups(data, onlyNeeded);
+  const flipKey = (key: string) => `${onlyNeeded ? "need" : "all"}:${key}`;
+  const isOpen = (key: string) => onlyNeeded !== flipped.has(flipKey(key));
+  const flip = (key: string) =>
+    setFlipped((prev) => {
+      const next = new Set(prev);
+      if (!next.delete(flipKey(key))) next.add(flipKey(key));
+      return next;
+    });
   const neededCount = data.items.filter((i) => i.status === "need").length;
   const editingItem = data.items.find((i) => i.id === editing);
 
@@ -82,13 +93,27 @@ export function HomeList() {
         </div>
       )}
 
-      {data.items.length > 0 && groups.map((group) => (
+      {data.items.length > 0 && groups.map((group) => {
+        const open = isOpen(group.key);
+        const neededHere = group.items.filter((i) => i.status === "need").length;
+        return (
         <section key={group.key}>
-          <GroupTitle count={group.items.filter((i) => i.status === "need").length || undefined}>{group.title}</GroupTitle>
-          {group.items.length === 0 && (
+          <button
+            type="button"
+            onClick={() => flip(group.key)}
+            aria-expanded={open}
+            className="flex w-full items-center gap-2 rounded-xl px-1 py-1.5 text-left text-sm font-semibold tracking-wide text-muted uppercase active:bg-surface"
+          >
+            <span aria-hidden className={`inline-block w-3 transition-transform ${open ? "rotate-90" : ""}`}>›</span>
+            <span className="flex-1">{group.title}</span>
+            <span className="tabular-nums">
+              {neededHere > 0 ? <span className="text-accent">{neededHere} to buy</span> : group.items.length}
+            </span>
+          </button>
+          {open && group.items.length === 0 && (
             <p className="rounded-2xl border border-dashed border-line px-4 py-3 text-sm text-muted">Nothing here yet</p>
           )}
-          {group.items.length > 0 && <ul className="overflow-hidden rounded-2xl border border-line bg-surface shadow-sm">
+          {open && group.items.length > 0 && <ul className="mt-1.5 overflow-hidden rounded-2xl border border-line bg-surface shadow-sm">
             {group.items.map((item) => {
               const needed = item.status === "need";
               const who = showWho && needed ? nameOf(item.needed_by) : null;
@@ -113,7 +138,8 @@ export function HomeList() {
             })}
           </ul>}
         </section>
-      ))}
+        );
+      })}
 
       {data.items.length > 0 && groups.length === 0 && <p className="py-10 text-center text-muted">Nothing to buy. 🎉</p>}
 
